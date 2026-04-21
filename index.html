@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global TAA Optimizer — DL Partners</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f4f5f8;--pn:#fff;--rh:#eef2ff;--inp:#f2f3f7;
+  --bd:#dfe2ea;--bh:#cdd2dc;
+  --tx:#2d3748;--tb:#1a202c;--td:#718096;--tm:#a0aec0;
+  --g:#0d9668;--g2:#0d966810;--gB:#ecfdf5;
+  --r:#dc2626;--r2:#dc262610;--rB:#fef2f2;
+  --a:#b45309;--a2:#b4530910;
+  --b:#2563eb;--b2:#2563eb10;--bB:#eff6ff;
+  --p:#7c3aed;--p2:#7c3aed10;
+  --f:'IBM Plex Mono',monospace;--fs:'IBM Plex Sans',sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,.05);
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--f);font-size:12px}
+.top{display:flex;align-items:stretch;background:var(--pn);border-bottom:1px solid var(--bd);box-shadow:var(--sh)}
+.top-left{padding:10px 20px;display:flex;flex-direction:column;justify-content:center;min-width:210px}
+.top-t{font-family:var(--fs);font-size:15px;font-weight:700;color:var(--tb)}.top-s{color:var(--td);font-size:10px;margin-top:1px}
+.top-mid{display:flex;align-items:center;border-left:1px solid var(--bd);border-right:1px solid var(--bd)}
+.cf{padding:8px 15px;text-align:center;min-width:130px}.cf+.cf{border-left:1px solid var(--bd)}
+.cf-l{font-size:9px;color:var(--tm);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.cf-v{font-size:17px;font-weight:700}
+.cf-in{background:var(--inp);border:1px solid var(--bd);border-radius:4px;color:var(--tb);font-family:var(--f);font-size:13px;font-weight:700;padding:4px 7px;outline:none;text-align:center;width:122px}
+.cf-in:focus{border-color:var(--b);box-shadow:0 0 0 2px #2563eb18}
+.cf-sub{font-size:9px;color:var(--td);margin-top:2px}
+.top-r{display:flex;align-items:center}
+.ts{padding:8px 13px;text-align:center;border-left:1px solid var(--bd)}
+.ts-l{font-size:9px;color:var(--tm);letter-spacing:.08em;text-transform:uppercase}.ts-v{font-size:13px;font-weight:600;margin-top:1px}
+.bar{display:flex;align-items:center;padding:0 14px;background:var(--pn);border-bottom:1px solid var(--bd)}
+.tabs{display:flex;margin-right:auto;overflow-x:auto;scrollbar-width:thin}
+.tab{padding:9px 10px;font-family:var(--fs);font-size:10px;font-weight:600;color:var(--td);cursor:pointer;border-bottom:2px solid transparent;user-select:none;white-space:nowrap;flex-shrink:0}.tab:hover{color:var(--tx)}.tab.on{color:var(--b);border-bottom-color:var(--b)}
+.bar-c{display:flex;align-items:center;gap:10px;padding:5px 0;flex-shrink:0}
+.cg{display:flex;align-items:center;gap:4px}
+.cl{font-size:8px;color:var(--tm);letter-spacing:.08em;text-transform:uppercase}
+.sep{width:1px;height:18px;background:var(--bd)}
+.sl{width:76px;accent-color:var(--b)}
+.badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.btn{padding:5px 13px;font-family:var(--f);font-size:10px;font-weight:600;border:none;border-radius:5px;cursor:pointer}
+.btn-go{background:var(--b);color:#fff}.btn-go:hover{background:#1d4ed8}
+.btn-rs{background:var(--inp);color:var(--td);border:1px solid var(--bd)}.btn-rs:hover{background:#e2e4e9}
+.btn-grn{background:var(--g);color:#fff}.btn-grn:hover{background:#0a7d56}
+.solved{font-size:10px;font-weight:600;display:none;padding:2px 7px;border-radius:4px}
+.page{display:none}.page.on{display:block}
+
+/* Generic tables */
+.gt{background:var(--pn);border:1px solid var(--bd);border-radius:8px;overflow:hidden;box-shadow:var(--sh)}
+.gt table{width:100%;border-collapse:collapse}
+.gt th{background:#eef0f4;padding:7px 11px;font-size:10px;font-weight:600;color:var(--td);letter-spacing:.06em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--bd)}
+.gt th.r{text-align:right}.gt th.c{text-align:center}
+.gt td{padding:5px 11px;border-bottom:1px solid #f0f2f5;font-size:12px}.gt tr:hover td{background:#fafbfd}.gt td.r{text-align:right}.gt td.c{text-align:center}
+.gi{background:var(--inp);border:1px solid var(--bd);border-radius:4px;font-family:var(--f);font-size:12px;padding:4px 6px;outline:none;color:var(--tb);font-weight:600}
+.gi:focus{border-color:var(--b);box-shadow:0 0 0 2px #2563eb12}
+.gi.num{text-align:right;width:106px}.gi.pr{text-align:right;width:72px;color:var(--td);font-weight:400}
+.gi.tag{width:96px;text-align:center;font-size:11px;padding:4px 4px}
+.gt .ft td{background:#eef0f4;font-weight:700;padding:7px 11px!important;border-top:2px solid var(--bh)!important}
+.rg{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.tk{font-weight:700;color:var(--tb)}.an2{color:var(--td);font-size:11px}
+.pp{padding:18px 22px;max-width:1100px;margin:0 auto}
+.pp-t{font-family:var(--fs);font-size:15px;font-weight:700;color:var(--tb);margin-bottom:3px}
+.pp-sub{font-size:11px;color:var(--td);margin-bottom:14px;line-height:1.5}
+.ha{display:flex;gap:8px;margin-top:12px;align-items:center}
+.hst{font-size:11px;font-weight:600;display:none;padding:2px 7px;border-radius:4px}
+
+/* Analytics tables */
+.at{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.at thead th{padding:4px 6px;font-size:9px;font-weight:600;color:var(--tm);letter-spacing:.05em;text-transform:uppercase;border-bottom:2px solid var(--bd);text-align:right;white-space:nowrap}
+.at thead th.al{text-align:left}.at thead th.r{text-align:right}
+.at tbody td{padding:3px 6px;border-bottom:1px solid #edf0f4;text-align:right;white-space:nowrap}
+.at tbody td.al{text-align:left;white-space:normal}.at tbody td.r{text-align:right}
+.at tbody tr:hover td{background:var(--rh)}
+.srt{cursor:pointer;user-select:none}.srt:hover{color:var(--b)}
+
+/* Notes tab */
+.nt{font-size:13px;line-height:1.6;color:var(--tb)}
+.nt h3{font-size:14px;font-weight:700;color:var(--b);margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bd)}
+.nt p{margin:6px 0;color:var(--td)}
+.nt b{color:var(--tb)}
+.eq{font-family:var(--fs);font-size:16px;font-weight:700;color:var(--b);background:var(--b2);padding:12px 18px;border-radius:6px;margin:10px 0;display:inline-block}
+
+/* Optimizer sheet */
+.sw{overflow-x:auto}
+table.s{width:100%;border-collapse:collapse;min-width:900px}
+table.s thead th{position:sticky;top:0;z-index:10;background:#eef0f4;padding:4px 5px;font-size:9px;font-weight:600;color:var(--td);letter-spacing:.05em;text-transform:uppercase;text-align:right;border-bottom:2px solid var(--bd);white-space:nowrap}
+table.s thead th.al{text-align:left}table.s thead th.ac{text-align:center}table.s thead th.hl{color:var(--b);font-weight:700}
+.grp th{background:#eef0f4!important;padding:2px 0!important;font-size:9px;font-weight:700;letter-spacing:.1em;border-bottom:none!important;text-align:center}
+tr.cat td{background:#eef0f4;padding:3px 5px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--bd);border-top:1px solid var(--bd)}
+table.s tbody td{padding:3px 5px;border-bottom:1px solid #edf0f4;text-align:right;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;transition:background .12s}
+table.s tbody tr.dr:hover td{background:var(--rh)}
+table.s tbody td.al{text-align:left}table.s tbody td.ac{text-align:center}
+.sl2{border-left:1px solid var(--bd)}
+td.fw{background:#eef3ff!important}
+td.fw input{background:0;border:none;color:var(--b);font-family:var(--f);font-size:11px;font-weight:700;text-align:right;width:40px;outline:none;padding:0}
+td.ed input{background:0;border:none;font-family:var(--f);font-size:11px;text-align:right;width:24px;outline:none;padding:0;color:var(--td)}
+td.ed:hover{background:#f5f6fa!important}
+.ct{display:inline-flex;align-items:center;justify-content:center;padding:1px 3px;border-radius:3px;font-size:8px;font-weight:700;cursor:pointer;user-select:none;border:1px solid transparent;min-width:42px}
+.ct-n{color:var(--tm);background:var(--inp)}.ct-ns{color:var(--g);background:var(--gB);border-color:#0d966820}.ct-nb{color:var(--r);background:var(--rB);border-color:#dc262615}
+.dc{display:inline-block;padding:1px 4px;border-radius:3px;font-size:10px;font-weight:600}
+tr.tot td{background:#eef0f4;font-weight:700;color:var(--tb);border-top:2px solid var(--bh);padding:4px 5px;font-size:11px}
+.sum-strip{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bd);background:var(--pn)}
+.ss{padding:10px 14px;text-align:center;border-right:1px solid var(--bd)}.ss:last-child{border-right:none}
+.ss-l{font-size:9px;color:var(--tm);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}.ss-v{font-size:17px;font-weight:700}.ss-s{font-size:10px;color:var(--td);margin-top:1px}
+.slog{margin:0 14px 8px;padding:8px 10px;background:#f8f9fb;border:1px solid var(--bd);border-radius:5px;font-size:10px;color:var(--td);line-height:1.5;max-height:140px;overflow-y:auto;display:none}
+.slog .ok{color:var(--g)}.slog .wa{color:var(--a)}.slog .er{color:var(--r)}.slog .ph{color:var(--b);font-weight:600}
+
+/* Analytics */
+.an-section{margin-bottom:20px}
+.an-section-t{font-family:var(--fs);font-size:13px;font-weight:700;color:var(--tb);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.an-section-t .dot{width:10px;height:10px;border-radius:3px}
+.an-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;padding:4px 10px;background:var(--pn);border:1px solid #eef0f4;border-radius:5px}
+.an-lbl{font-size:11px;color:var(--td);min-width:84px;font-weight:500}
+.an-bar-bg{height:16px;background:var(--inp);border-radius:3px;flex:1;overflow:hidden;position:relative}
+.an-bar-cur{position:absolute;top:0;height:100%;border-radius:3px;opacity:.35}
+.an-bar-opt{position:absolute;top:0;height:100%;border-radius:3px}
+.an-v{font-size:11px;font-weight:700;min-width:44px;text-align:right}
+.an-d{font-size:10px;font-weight:600;min-width:52px;text-align:right}
+.an-legend{display:flex;gap:16px;margin-bottom:12px;font-size:10px;color:var(--td)}
+.an-legend span{display:flex;align-items:center;gap:4px}
+.an-legend .sq{width:10px;height:10px;border-radius:2px}
+
+/* Constraints */
+.cc{display:flex;align-items:center;background:var(--pn);border:1px solid var(--bd);border-radius:5px;padding:8px 12px;gap:10px;margin-bottom:5px}
+.cc.over{border-color:var(--r)}
+.cc-nm{font-weight:600;min-width:84px;font-size:12px}
+.cc-bw{flex:1;display:flex;align-items:center;gap:6px}
+.cc-bar{flex:1;height:5px;background:var(--inp);border-radius:3px;overflow:hidden}
+.cc-bf{height:100%;border-radius:3px;transition:width .3s}
+.cc-val{font-weight:700;min-width:42px;text-align:right;font-size:12px}
+.cc-lim{display:flex;align-items:center;gap:3px;min-width:70px}
+.cc-lim input{width:38px;padding:2px 3px;background:var(--inp);border:1px solid var(--bd);border-radius:3px;font-family:var(--f);font-size:11px;font-weight:600;text-align:center;outline:none;color:var(--tb)}
+.cc-lim input:focus{border-color:var(--b)}
+.cc-tks{font-size:10px;color:var(--tm);min-width:140px}
+.cl2{font-family:var(--fs);font-size:13px;font-weight:700;color:var(--tb);margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.cl2 .dot{width:10px;height:10px;border-radius:3px}
+.con-table{width:100%;border-collapse:collapse;background:var(--pn);border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+.con-table th{background:#eef0f4;padding:6px 11px;font-size:10px;font-weight:600;color:var(--td);letter-spacing:.06em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--bd)}
+.con-table td{padding:6px 11px;border-bottom:1px solid #f0f2f5;font-size:12px}
+.con-table tr:last-child td{border-bottom:none}
+
+.foot{padding:5px 14px;background:var(--pn);border-top:1px solid var(--bd);display:flex;justify-content:space-between;font-size:10px;color:var(--tm)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bh);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="top-left"><div class="top-t">GLOBAL TAA OPTIMIZER</div><div class="top-s">DL Partners · min wᵀΣw</div></div>
+  <div class="top-mid">
+    <div class="cf"><div class="cf-l">Current Portfolio</div><div class="cf-v" style="color:var(--tb)" id="cfCur">$0</div><div class="cf-sub">from holdings</div></div>
+    <div class="cf"><div class="cf-l">New Cash Flow</div><input class="cf-in" id="cfNew" value="+0" onchange="parseCF()" onfocus="this.select()"/><div class="cf-sub">+ invest / − divest</div></div>
+    <div class="cf"><div class="cf-l">Target AUM</div><div class="cf-v" id="cfTgt" style="color:var(--b)">$0</div><div class="cf-sub" id="cfDel"></div></div>
+  </div>
+  <div class="top-r">
+    <div class="ts"><div class="ts-l">Cur</div><div class="ts-v" id="hCR" style="color:var(--td)">—</div></div>
+    <div class="ts"><div class="ts-l">Opt</div><div class="ts-v" id="hFR" style="color:var(--g)">—</div></div>
+    <div class="ts"><div class="ts-l">Δ</div><div class="ts-v" id="hDR" style="color:var(--g)">—</div></div>
+    <div class="ts"><div class="ts-l">Vol</div><div class="ts-v" id="hFV" style="color:var(--a)">—</div></div>
+    <div class="ts"><div class="ts-l">Div Ratio</div><div class="ts-v" id="hTE" style="color:var(--b)">—</div></div>
+    <div style="margin-left:8px;border-left:1px solid var(--bd);padding-left:8px"><button class="btn btn-rs" onclick="$('notesMdl').style.display='flex'" style="font-size:9px;padding:4px 10px">📖 Notes</button></div>
+  </div>
+</div>
+<div class="bar" style="flex-wrap:wrap">
+  <div class="tabs">
+    <div class="tab on" data-t="hold">① Holdings</div>
+    <div class="tab" data-t="cls">② Classification</div>
+    <div class="tab" data-t="cm">③ Country Model</div>
+    <div class="tab" data-t="opt">④ Optimizer</div>
+    <div class="tab" data-t="ana">⑤ Analytics</div>
+    <div class="tab" data-t="chg">⑥ Port Changes</div>
+    <div class="tab" data-t="trd">⑦ Trade File</div>
+    <div class="tab" data-t="con">⑧ Constraints</div>
+    <div class="tab" data-t="notes">⑨ Notes</div>
+  </div>
+</div>
+<div style="display:flex;align-items:center;padding:4px 14px;background:var(--pn);border-bottom:1px solid var(--bd);gap:4px;flex-wrap:wrap">
+  <div class="cg"><span class="cl">α Weight</span><input type="range" class="sl" min="0" max="10" step="0.5" value="3" id="lamIn" oninput="$('lamV').textContent=(+this.value).toFixed(1)"/><span style="color:var(--b);font-weight:600;min-width:18px;font-size:10px" id="lamV">3.0</span></div>
+  <div class="sep"></div>
+  <div class="cg"><span class="cl">T-Cost</span><input type="range" class="sl" min="0" max="10" step="0.5" value="2" id="tcIn" oninput="$('tcV').textContent=(+this.value).toFixed(1)"/><span style="color:var(--a);font-weight:600;min-width:18px;font-size:10px" id="tcV">2.0</span></div>
+  <div class="sep"></div>
+  <div class="cg"><span class="cl">Corr Stress</span><input type="range" class="sl" min="0" max="100" value="50" id="strIn" oninput="uStr()"/><span class="badge" id="strB" style="background:var(--a2);color:var(--a)">NORMAL</span></div>
+  <div class="sep"></div>
+  <button class="btn btn-go" onclick="runOpt()">▶ OPTIMIZE</button>
+  <button class="btn btn-rs" onclick="resetAll()">↺ RESET</button>
+  <span class="solved" id="solB"></span>
+</div>
+<div class="page on" id="pg-hold"></div>
+<div class="page" id="pg-cls"></div>
+<div class="page" id="pg-cm"></div>
+<div class="page" id="pg-opt"></div>
+<div class="page" id="pg-ana"></div>
+<div class="page" id="pg-chg"></div>
+<div class="page" id="pg-trd"></div>
+<div class="page" id="pg-con"></div>
+<div class="page" id="pg-notes"></div>
+<div id="notesMdl" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;justify-content:center;align-items:start;padding:30px 20px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+<div style="background:var(--pn);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-width:820px;width:100%;max-height:90vh;overflow-y:auto;position:relative">
+<button onclick="$('notesMdl').style.display='none'" style="position:sticky;top:0;float:right;background:var(--inp);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;margin:12px;z-index:1">✕ Close</button>
+<div class="pp" style="max-width:820px">
+<div class="pp-t">TAA Optimizer &mdash; How It Works</div>
+<div class="nt">
+
+<h3>What This Tool Does</h3>
+<p>This is a <b>Tactical Asset Allocation (TAA) optimizer</b> for an absolute return portfolio of ETFs. Given your current holdings, conviction scores, and risk/exposure constraints, it computes optimal target weights that maximize risk-adjusted conviction while respecting every limit you set.</p>
+
+<h3>The Objective Function</h3>
+<p>The optimizer solves:</p>
+<div class="eq">max &nbsp; &Sigma; w<sub>i</sub> &alpha;<sub>i</sub> &nbsp;&minus;&nbsp; (&lambda;/2) w<sup>T</sup> &Sigma; w &nbsp;&minus;&nbsp; &kappa; &Sigma;|w<sub>i</sub> &minus; w<sub>i</sub><sup>0</sup>|</div>
+<p>In plain English: <b>maximize your conviction-weighted exposure, minus a penalty for portfolio risk, minus a penalty for trading away from current weights.</b></p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:120px">w<sub>i</sub></td><td class="al">Weight of ETF i in the portfolio (sums to 100%)</td></tr>
+<tr><td class="al" style="font-weight:600">&alpha;<sub>i</sub></td><td class="al">Your weekly alpha score (0, 1, 2, or 3) based on technicals. 3 = strongest conviction</td></tr>
+<tr><td class="al" style="font-weight:600">&Sigma; (Sigma)</td><td class="al">The covariance matrix capturing how all ETFs move together. Built from correlations x individual volatilities</td></tr>
+<tr><td class="al" style="font-weight:600">w<sup>T</sup>&Sigma;w</td><td class="al">Portfolio variance, a single number capturing total portfolio risk including all cross-correlations</td></tr>
+<tr><td class="al" style="font-weight:600">&lambda; (Alpha Weight)</td><td class="al">Controls how much alpha scores influence weights vs pure diversification. 0 = pure min-variance. 10 = concentrate in high-score names</td></tr>
+<tr><td class="al" style="font-weight:600">w<sub>i</sub><sup>0</sup></td><td class="al">Current weight of ETF i (before rebalancing), the reference point for turnover</td></tr>
+<tr><td class="al" style="font-weight:600">&kappa; (T-Cost)</td><td class="al">Transaction cost penalty. Penalizes every % of weight moved away from current holdings. 0 = free to trade. 10 = heavy penalty, optimizer stays close to current weights</td></tr>
+</tbody></table>
+
+<h3>What the Optimizer Considers</h3>
+<p>The optimizer finds weights subject to these constraints simultaneously:</p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:140px">Position bounds</td><td class="al">Min and Max % per ETF (default 0-30%). Set in the Optimizer tab.</td></tr>
+<tr><td class="al" style="font-weight:600">Group limits</td><td class="al">Max/Min % per Asset Class, Geography, Theme, and Risk Class. Set in Constraints tab.</td></tr>
+<tr><td class="al" style="font-weight:600">NO SELL / NO BUY</td><td class="al">Locks on individual ETFs. NO SELL = optimized weight cannot go below current. NO BUY = optimized weight cannot go above current. Click the Lock column to cycle.</td></tr>
+<tr><td class="al" style="font-weight:600">Weights sum to 100%</td><td class="al">Fully invested constraint. All weights must sum to exactly 100%.</td></tr>
+</tbody></table>
+
+<h3>The Solver (Dual-Ascent QP)</h3>
+<p>The optimizer runs in two phases:</p>
+<p><b>Phase 1 &mdash; Dual Ascent:</b> Starts with a diagonal approximation of the covariance matrix (ignoring cross-correlations). Uses Lagrange multipliers for each group constraint. Iteratively adjusts these &mdash; if a group is over its cap, the penalty increases, pushing weights down. Converges in 50-200 iterations.</p>
+<p><b>Phase 2 &mdash; Gradient Projection Polish:</b> Takes the Phase 1 solution and refines it using the full covariance matrix (all cross-correlations). Uses projected gradient ascent with subgradients for the L1 turnover penalty. Runs 2,000 iterations for precision.</p>
+<p>Typical solve time: 30-80ms for 17 assets with 15+ group constraints.</p>
+
+<h3>Transaction Cost Penalty (T-Cost Slider)</h3>
+<p>The T-Cost slider controls &kappa; &mdash; the penalty the optimizer pays for moving weight away from current holdings. Every percentage point of turnover costs &kappa; in objective value. The optimizer will only trade if the alpha or risk-reduction benefit exceeds this cost.</p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:100px">0 (off)</td><td class="al">No penalty. Full freedom. Can produce 60-80% turnover. Use for initial setup or major regime changes.</td></tr>
+<tr><td class="al" style="font-weight:600">2 (default)</td><td class="al">Moderate penalty. Trades only when conviction or risk benefit justifies cost. Typical turnover 25-40%.</td></tr>
+<tr><td class="al" style="font-weight:600">5 (firm)</td><td class="al">Strong penalty. Only significant alpha changes or clear risk reduction triggers trades. Turnover 10-20%.</td></tr>
+<tr><td class="al" style="font-weight:600">10 (max)</td><td class="al">Very heavy penalty. Portfolio barely moves. Only extreme situations generate trades.</td></tr>
+</tbody></table>
+<p><b>How it works:</b> The term adds an L1 penalty around current weights. At w = w0 (no trade), the cost is zero. Each unit of weight moved costs &kappa;. Same structure as a Lasso penalty &mdash; it drives small, marginal trades to exactly zero, producing sparse trade lists.</p>
+<p><b>Practical guidance:</b> Start with T-Cost = 2. If turnover is too high, increase to 3-4. For monthly rebalancing, 2-3 is typical. For weekly rebalancing, use 4-6. Set to 0 only for initial portfolio construction or major thesis shifts.</p>
+
+<h3>Correlation Stress Slider</h3>
+<p>This slider controls <b>how much you assume markets will move together during a crisis</b>.</p>
+<p>In normal times, different countries and asset classes don&rsquo;t move in lockstep &mdash; Greece might be up while Japan is down, gold might zig while oil zags. That&rsquo;s diversification, and it&rsquo;s why you hold multiple positions.</p>
+<p>But in a crisis (think March 2020, 2008), <b>everything drops together</b>. Correlations spike &mdash; assets that were independent suddenly become correlated. Your &ldquo;diversified&rdquo; portfolio suddenly acts like one big position.</p>
+<p>The slider simulates this:</p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:120px">0 &mdash; CALM</td><td class="al">Correlations are <i>lower</i> than normal. You&rsquo;re telling the optimizer &ldquo;diversification will work even better than usual.&rdquo; It spreads weight across more positions because it believes they&rsquo;ll offset each other.</td></tr>
+<tr><td class="al" style="font-weight:600">50 &mdash; NORMAL</td><td class="al">Uses correlations as-is from historical data. <b>Default starting point.</b></td></tr>
+<tr><td class="al" style="font-weight:600">100 &mdash; CRISIS</td><td class="al">Correlations are <i>higher</i> than normal. Positive correlations get pushed up ~20% (e.g. SPY&ndash;EWP goes from 0.70 &rarr; 0.84). You&rsquo;re telling the optimizer &ldquo;assume everything will sell off together.&rdquo; It responds by putting more weight in truly uncorrelated assets (SHY, GLD) and less in positions that look diversified in calm markets but won&rsquo;t be in a crash.</td></tr>
+</tbody></table>
+<p><b>Practical guidance:</b> Keep at 50 for normal weekly rebalancing. If you&rsquo;re worried about a macro shock (tariff escalation, geopolitical event, credit stress), push to 70&ndash;80 before optimizing &mdash; the output will be a more defensive portfolio. You don&rsquo;t need to touch it every week; it&rsquo;s a scenario tool for when your risk radar is flashing.</p>
+
+<h3>Key Metrics (Analytics Tab)</h3>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:140px">Portfolio Vol</td><td class="al">Square root of portfolio variance. Total portfolio volatility from the covariance matrix.</td></tr>
+<tr><td class="al" style="font-weight:600">Diversification Ratio</td><td class="al">Sum of weighted individual vols divided by portfolio vol. Higher = correlations reducing risk more. 1.0x = no benefit.</td></tr>
+<tr><td class="al" style="font-weight:600">Risk Contribution</td><td class="al">Each ETF marginal contribution to portfolio risk. An ETF can have 5% weight but 15% risk contribution if highly correlated with the rest.</td></tr>
+</tbody></table>
+
+<h3>Country Model Integration</h3>
+<p>Tab 3 (Country Model) takes composite scores from your external country model and converts them to ETF alpha signals:</p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:140px">Input</td><td class="al">Country composite scores (0-100) from your model, with Value, Momentum, Liquidity sub-scores</td></tr>
+<tr><td class="al" style="font-weight:600">Z-Score</td><td class="al">Each country score is standardized: (score - mean) / std across the universe</td></tr>
+<tr><td class="al" style="font-weight:600">Mapping</td><td class="al">Countries are mapped to ETFs. Multi-country ETFs (EEM, EFA) use the average Z-score of their constituent countries</td></tr>
+<tr><td class="al" style="font-weight:600">Cutoffs</td><td class="al">Z &gt; 1.0 = alpha 3, Z &gt; 0.3 = alpha 2, Z &gt; -0.3 = alpha 1, below = alpha 0</td></tr>
+<tr><td class="al" style="font-weight:600">Apply</td><td class="al">Click "Apply to Alpha" to push scores into the optimizer. Non-mapped ETFs (bonds, commodities, cash) keep manual alpha.</td></tr>
+</tbody></table>
+
+<h3>Weekly Workflow</h3>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:30px">1.</td><td class="al"><b>Update holdings</b> &mdash; paste from broker CSV or type dollar amounts in Tab 1</td></tr>
+<tr><td class="al" style="font-weight:600">2.</td><td class="al"><b>Import country model</b> &mdash; upload CSV in Tab 3, click Apply to Alpha</td></tr>
+<tr><td class="al" style="font-weight:600">3.</td><td class="al"><b>Set manual alphas</b> &mdash; for non-country ETFs (bonds, gold, cash) in Tab 4</td></tr>
+<tr><td class="al" style="font-weight:600">4.</td><td class="al"><b>Review constraints</b> &mdash; check theme tags in Tab 2 and limits in Tab 7</td></tr>
+<tr><td class="al" style="font-weight:600">5.</td><td class="al"><b>Set locks</b> &mdash; NO SELL / NO BUY on individual positions in Tab 4</td></tr>
+<tr><td class="al" style="font-weight:600">6.</td><td class="al"><b>Run optimizer</b> &mdash; click OPTIMIZE. Review trade column.</td></tr>
+<tr><td class="al" style="font-weight:600">7.</td><td class="al"><b>Review and send</b> &mdash; Tab 5 (Analytics) for risk, Tab 6 (Port Changes) for the rebalance memo to send to team</td></tr>
+</tbody></table>
+
+<h3>Live Data Feed</h3>
+<p>The correlation matrix, volatilities, and prices can be auto-updated from Yahoo Finance using the companion Python script taa_data.py.</p>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:140px">Setup</td><td class="al">pip install yfinance numpy pandas</td></tr>
+<tr><td class="al" style="font-weight:600">Run manually</td><td class="al">python3 taa_data.py &mdash; fetches 1yr prices, computes correlation matrix, writes taa_data.json</td></tr>
+<tr><td class="al" style="font-weight:600">Schedule</td><td class="al">Cron: 0 19 * * 1-5 (Mon-Fri 7pm ET after market close)</td></tr>
+<tr><td class="al" style="font-weight:600">What it updates</td><td class="al">Pairwise correlations (136 pairs), annualized vol per ETF, latest closing price. CASH is synthetic (0 vol).</td></tr>
+<tr><td class="al" style="font-weight:600">How it loads</td><td class="al">On page load, fetches taa_data.json from same directory. If found = live data. If not = hardcoded fallback.</td></tr>
+</tbody></table>
+
+<h3>Tab Reference</h3>
+<table class="at" style="margin:12px 0"><tbody>
+<tr><td class="al" style="font-weight:600;width:140px">1 Holdings</td><td class="al">Enter or import current dollar holdings per ETF. Upload CSV or paste from spreadsheet.</td></tr>
+<tr><td class="al" style="font-weight:600">2 Classification</td><td class="al">Tag ETFs with themes (multi-tag), geography, and risk class.</td></tr>
+<tr><td class="al" style="font-weight:600">3 Country Model</td><td class="al">Import country composite scores, Z-score them, map to ETF alphas.</td></tr>
+<tr><td class="al" style="font-weight:600">4 Optimizer</td><td class="al">The main spreadsheet. Set alpha scores, locks, bounds. Run optimizer.</td></tr>
+<tr><td class="al" style="font-weight:600">5 Analytics</td><td class="al">Before vs after comparison. Exposure shifts and risk contribution.</td></tr>
+<tr><td class="al" style="font-weight:600">6 Port Changes</td><td class="al">Post-rebalance memo. Copy and send to team.</td></tr>
+<tr><td class="al" style="font-weight:600">7 Constraints</td><td class="al">Edit min/max limits per group across all dimensions.</td></tr>
+<tr><td class="al" style="font-weight:600">8 Notes</td><td class="al">This page.</td></tr>
+</tbody></table>
+
+</div>
+</div>
+</div>
+</div>
+<div class="foot"><span>DL PARTNERS · TAA v9.0 · Dual-Ascent QP</span><span id="footR"></span></div>
+
+<script>
+const $=id=>document.getElementById(id);
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');$('pg-'+t.dataset.t).classList.add('on');
+  if(t.dataset.t==='cls')rCls();if(t.dataset.t==='cm')rCM();if(t.dataset.t==='ana')rAna();if(t.dataset.t==='chg')rChg();if(t.dataset.t==='trd')rTrd();if(t.dataset.t==='con')rCon();
+}));
+
+// ETF universe — actual DL Partners TAA1 holdings from 04/08/2026
+// SHY serves as cash-equivalent (dry powder) — classified under Cash
+const ETF=[
+  // EQUITY — Developed Markets
+  {tk:"SPY",nm:"S&P 500",              cat:"Equity",geo:"US",theme:[],  risk:"Low",  vol:15.2,px:659.22},
+  {tk:"XLI",nm:"Industrial Sector",    cat:"Equity",geo:"US",theme:[],  risk:"Med",  vol:17.5,px:164.28},
+  {tk:"SMH",nm:"Semiconductor",        cat:"Equity",geo:"US",theme:[],  risk:"High", vol:28.0,px:399.90},
+  {tk:"EWJ",nm:"Japan",                cat:"Equity",geo:"DM",theme:[],  risk:"Med",  vol:16.5,px:85.51},
+  {tk:"FEZ",nm:"Euro Stoxx 50",        cat:"Equity",geo:"DM",theme:[],  risk:"Med",  vol:17.0,px:62.86},
+  {tk:"EWP",nm:"Spain",                cat:"Equity",geo:"DM",theme:[],  risk:"Med",  vol:18.0,px:55.28},
+  {tk:"EWI",nm:"Italy",                cat:"Equity",geo:"DM",theme:[],  risk:"Med",  vol:18.5,px:54.79},
+  {tk:"GREK",nm:"Greece",              cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:22.0,px:66.71},
+  // EMERGING MARKETS
+  {tk:"EPOL",nm:"Poland",              cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:24.0,px:37.26},
+  {tk:"EZA",nm:"South Africa",         cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:25.0,px:68.41},
+  {tk:"ECH",nm:"Chile",                cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:24.0,px:39.70},
+  {tk:"EIS",nm:"Israel",               cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:22.0,px:118.37},
+  {tk:"EPU",nm:"Peru",                 cat:"Equity",geo:"EM",theme:[],  risk:"High", vol:26.0,px:81.72},
+  // COMMODITIES
+  {tk:"GLD",nm:"Gold",                 cat:"Cmdty", geo:"GL",theme:[],  risk:"Med",  vol:15.5,px:431.81},
+  {tk:"USO",nm:"Oil",                  cat:"Cmdty", geo:"GL",theme:[],  risk:"High", vol:32.0,px:138.08},
+  {tk:"COPX",nm:"Copper Miners",       cat:"Cmdty", geo:"GL",theme:[],  risk:"High", vol:30.0,px:76.74},
+  // CASH-EQUIVALENT — SHY is dry powder
+  {tk:"SHY",nm:"1-3Y Treasury (Cash)", cat:"Cash",  geo:"US",theme:[],  risk:"Low",  vol:1.5,px:82.34},
+];
+let N=ETF.length;
+const A=ETF.map(()=>({hold$:0,finW:0,minW:0,maxW:30,alpha:2,con:"none"}));
+const CATS=["Equity","Cmdty","Cash"];
+const XC={Equity:"#2563eb",Cmdty:"#0d9668",Cash:"#718096"};
+const CONS=[
+  {field:"cat",label:"Asset Class",color:"#2563eb",groups:{Equity:{max:70},Cmdty:{max:25},Cash:{max:80}}},
+  {field:"geo",label:"Geography",color:"#7c3aed",groups:{US:{max:75},DM:{max:35},EM:{max:25},GL:{max:25}}},
+  {field:"risk",label:"Risk Class",color:"#b45309",groups:{Low:{min:10},Med:{max:50},High:{max:40}}},
+  {field:"theme",label:"Thematic",color:"#0d9668",multi:true,groups:{}},
+];
+let NEW$=0;
+function curAUM(){return A.reduce((s,a)=>s+a.hold$,0);}
+function tgtAUM(){return Math.max(0,curAUM()+NEW$);}
+// SAMP — actual current holdings from TAA1 04/08/2026 ($686,939 total)
+const SAMP={
+  SHY:466950,    // 67.98% — 5,671 shares @ $82.34 (dry powder)
+  GLD:50090,     // 7.29% — 116 shares @ $431.81
+  USO:39629,     // 5.77% — 287 shares @ $138.08
+  SPY:23732,     // 3.45% — 36 shares @ $659.22
+  EWJ:16332,     // 2.38% — 191 shares @ $85.51
+  GREK:14076,    // 2.05% — 211 shares @ $66.71
+  EWP:13544,     // 1.97% — 245 shares @ $55.28
+  EWI:13040,     // 1.90% — 238 shares @ $54.79
+  XLI:7228,      // 1.05% — 44 shares @ $164.28
+  EIS:7102,      // 1.03% — 60 shares @ $118.37
+  COPX:6446,     // 0.94% — 84 shares @ $76.74
+  FEZ:5909,      // 0.86% — 94 shares @ $62.86
+  EZA:5610,      // 0.82% — 82 shares @ $68.41
+  ECH:5518,      // 0.80% — 139 shares @ $39.70
+  EPOL:5291,     // 0.77% — 142 shares @ $37.26
+  SMH:4399,      // 0.64% — 11 shares @ $399.90
+  EPU:2043,      // 0.30% — 25 shares @ $81.72
+};
+
+// hasTag: checks if ETF e belongs to group gn for field. Handles both array and string fields.
+function hasTag(e,field,gn){const v=e[field];return Array.isArray(v)?v.includes(gn):v===gn;}
+// allTags: all unique values for a field across all ETFs
+function allTags(field){const s=new Set();ETF.forEach(e=>{const v=e[field];if(Array.isArray(v))v.forEach(t=>s.add(t));else if(v)s.add(v);});return s;}
+
+function syncCls(){
+  for(const L of CONS){if(L.field==='cat')continue;
+    const used=allTags(L.field);
+    for(const t of used)if(!L.groups[t])L.groups[t]={max:30};
+    for(const g of Object.keys(L.groups))if(!used.has(g))delete L.groups[g];
+  }
+}
+function getOpts(field){
+  const s=allTags(field);
+  const lc=CONS.find(c=>c.field===field);
+  if(lc)Object.keys(lc.groups).forEach(g=>s.add(g));
+  return[...s].sort();
+}
+
+// ═══ CORRELATION ═══
+// Hardcoded fallback — overwritten by taa_data.json if available
+// Estimated correlations for DL Partners TAA1 universe (run taa_data.py for live values)
+const BC={
+  // SPY with everything
+  "SPY-XLI":.92,"SPY-SMH":.78,"SPY-EWJ":.62,"SPY-FEZ":.78,"SPY-EWP":.70,"SPY-EWI":.70,"SPY-GREK":.55,
+  "SPY-EPOL":.55,"SPY-EZA":.58,"SPY-ECH":.55,"SPY-EIS":.50,"SPY-EPU":.50,
+  "SPY-SHY":-.10,"SPY-GLD":.05,"SPY-USO":.30,"SPY-COPX":.55,
+  // XLI (cyclicals correlations)
+  "XLI-SMH":.72,"XLI-EWJ":.60,"XLI-FEZ":.78,"XLI-EWP":.72,"XLI-EWI":.72,"XLI-GREK":.55,
+  "XLI-EPOL":.58,"XLI-EZA":.60,"XLI-ECH":.58,"XLI-EIS":.48,"XLI-EPU":.55,
+  "XLI-SHY":-.08,"XLI-GLD":.10,"XLI-USO":.40,"XLI-COPX":.68,
+  // SMH (semis)
+  "SMH-EWJ":.55,"SMH-FEZ":.65,"SMH-EWP":.55,"SMH-EWI":.55,"SMH-GREK":.42,
+  "SMH-EPOL":.45,"SMH-EZA":.48,"SMH-ECH":.42,"SMH-EIS":.55,"SMH-EPU":.40,
+  "SMH-SHY":-.12,"SMH-GLD":.05,"SMH-USO":.20,"SMH-COPX":.50,
+  // EWJ
+  "EWJ-FEZ":.72,"EWJ-EWP":.65,"EWJ-EWI":.65,"EWJ-GREK":.50,
+  "EWJ-EPOL":.55,"EWJ-EZA":.55,"EWJ-ECH":.50,"EWJ-EIS":.45,"EWJ-EPU":.45,
+  "EWJ-SHY":.02,"EWJ-GLD":.12,"EWJ-USO":.28,"EWJ-COPX":.55,
+  // FEZ (Europe)
+  "FEZ-EWP":.92,"FEZ-EWI":.92,"FEZ-GREK":.78,
+  "FEZ-EPOL":.78,"FEZ-EZA":.62,"FEZ-ECH":.55,"FEZ-EIS":.50,"FEZ-EPU":.50,
+  "FEZ-SHY":-.05,"FEZ-GLD":.12,"FEZ-USO":.32,"FEZ-COPX":.62,
+  // EWP
+  "EWP-EWI":.92,"EWP-GREK":.75,
+  "EWP-EPOL":.75,"EWP-EZA":.60,"EWP-ECH":.55,"EWP-EIS":.48,"EWP-EPU":.48,
+  "EWP-SHY":-.05,"EWP-GLD":.10,"EWP-USO":.30,"EWP-COPX":.58,
+  // EWI
+  "EWI-GREK":.75,
+  "EWI-EPOL":.72,"EWI-EZA":.58,"EWI-ECH":.52,"EWI-EIS":.48,"EWI-EPU":.48,
+  "EWI-SHY":-.05,"EWI-GLD":.10,"EWI-USO":.30,"EWI-COPX":.58,
+  // GREK
+  "GREK-EPOL":.65,"GREK-EZA":.50,"GREK-ECH":.45,"GREK-EIS":.40,"GREK-EPU":.42,
+  "GREK-SHY":-.02,"GREK-GLD":.10,"GREK-USO":.32,"GREK-COPX":.52,
+  // EPOL
+  "EPOL-EZA":.58,"EPOL-ECH":.50,"EPOL-EIS":.42,"EPOL-EPU":.48,
+  "EPOL-SHY":-.02,"EPOL-GLD":.18,"EPOL-USO":.28,"EPOL-COPX":.55,
+  // EZA
+  "EZA-ECH":.62,"EZA-EIS":.42,"EZA-EPU":.55,
+  "EZA-SHY":-.02,"EZA-GLD":.30,"EZA-USO":.35,"EZA-COPX":.72,
+  // ECH
+  "ECH-EIS":.38,"ECH-EPU":.65,
+  "ECH-SHY":-.02,"ECH-GLD":.25,"ECH-USO":.40,"ECH-COPX":.78,
+  // EIS
+  "EIS-EPU":.35,
+  "EIS-SHY":.05,"EIS-GLD":.15,"EIS-USO":.20,"EIS-COPX":.40,
+  // EPU
+  "EPU-SHY":-.02,"EPU-GLD":.30,"EPU-USO":.42,"EPU-COPX":.75,
+  // SHY (short bonds)
+  "SHY-GLD":.10,"SHY-USO":-.05,"SHY-COPX":-.05,
+  // GLD
+  "GLD-USO":.25,"GLD-COPX":.55,
+  // USO
+  "USO-COPX":.55,
+  // COPX
+  
+};
+let DATA_SOURCE='hardcoded';
+function gc(a,b,st){if(a===b)return 1;const k=BC[a+"-"+b]??BC[b+"-"+a]??0.25;const s=(st-50)/50;return Math.max(-.99,Math.min(.99,k>0?k+s*.20:k+s*.08));}
+function bCov(st){
+  const C=[];
+  for(let i=0;i<N;i++){C[i]=new Float64Array(N);for(let j=0;j<N;j++)C[i][j]=gc(ETF[i].tk,ETF[j].tk,st)*ETF[i].vol*ETF[j].vol/10000;}
+  // Regularize diagonal (ensures PD for well-formed correlations)
+  for(let i=0;i<N;i++)C[i][i]+=1e-8;
+  // Lightweight PD check: verify diagonal dominance (necessary but not sufficient)
+  // Full eigenvalue check is in taa_data.py; here we just warn on suspicious structure
+  for(let i=0;i<N;i++){
+    let offDiagSum=0;
+    for(let j=0;j<N;j++)if(i!==j)offDiagSum+=Math.abs(C[i][j]);
+    if(offDiagSum>C[i][i]*1.5){
+      console.warn('Cov matrix row '+ETF[i].tk+': off-diagonal sum '+offDiagSum.toFixed(4)+' > 1.5× diagonal '+C[i][i].toFixed(4)+' — correlation estimates may be inconsistent');
+    }
+  }
+  return C;
+}
+
+// ═══ LIVE DATA LOADER ═══
+// Loads taa_data.json (produced by taa_data.py) — replaces correlations, vols, prices
+function loadLiveData(){
+  fetch('taa_data.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{
+    // Overwrite correlation pairs
+    let updated=0;
+    for(const[k,v]of Object.entries(d.correlations)){BC[k]=v;updated++;}
+    // Overwrite per-ETF vol and price
+    for(const[tk,s]of Object.entries(d.stats)){
+      const idx=ETF.findIndex(e=>e.tk===tk);
+      if(idx>=0){
+        if(s.vol>0)ETF[idx].vol=s.vol;
+        if(s.px>0)ETF[idx].px=s.px;
+      }
+    }
+    DATA_SOURCE='live: '+d.updated;
+    console.log('TAA data loaded:',updated,'pairs, source:',d.updated);
+    // Update footer
+    const f=$('footR');if(f)f.textContent=f.textContent+' · Data: '+d.updated;
+    // Re-render if already on optimizer
+    rFull();
+  }).catch(e=>{
+    DATA_SOURCE='hardcoded (fallback)';
+    console.log('taa_data.json not found — using hardcoded correlations.',e.message);
+  });
+}
+// Try loading on startup
+setTimeout(loadLiveData,300);
+
+// ═══ DUAL-ASCENT QP OPTIMIZER ═══
+function solve(){
+  const log=[],t0=performance.now(),st=parseInt($('strIn').value),Sig=bCov(st),tg=tgtAUM();
+  const lam=parseFloat($('lamIn').value);
+  const tcSlider=parseFloat($('tcIn').value);
+  if(tg<=0)return{w:ETF.map(()=>0),log:['ERR: AUM=0'],ok:false,ms:0};
+  /*═══════════════════════════════════════════════════════════
+    OBJECTIVE:  max  αᵀw − (1/2) wᵀΣw − κ Σ|wᵢ − wᵢ⁰|
+    
+    α  = weekly conviction scores (0-3, normalized)
+    Σ  = covariance matrix
+    κ  = transaction cost penalty (T-Cost slider)
+    w⁰ = current weights (reference point, based on target AUM)
+    
+    The |wᵢ − wᵢ⁰| term penalizes turnover. Higher κ means
+    the optimizer prefers staying close to current weights
+    unless the alpha/risk benefit of trading is worth the cost.
+    
+    κ = 0  → no penalty (full freedom to trade)
+    κ = 10 → heavy penalty (minimal trades)
+  ═══════════════════════════════════════════════════════════*/
+  // Current weights as reference for turnover penalty
+  // Use target AUM basis so new cash isn't penalized as turnover:
+  // w0[i] = hold$/targetAUM (what fraction of the TARGET each position represents)
+  // If deploying $50K new cash into a $687K portfolio, existing positions
+  // shrink naturally in w0 (since denominator grows) — the optimizer can
+  // allocate the new cash freely without T-Cost resistance.
+  const ca=curAUM();
+  const w0=new Float64Array(N);
+  for(let i=0;i<N;i++)w0[i]=tg>0?A[i].hold$/tg:0;
+
+  // Normalize scores and scale by lambda, CALIBRATED to covariance magnitude
+  // mu_i should compete with Σw terms which are O(diag(Σ)) ~ O(vol²/10000)
+  // Without scaling, lam=3 gives mu=3 vs Σ_diag~0.02 → 150:1 ratio (alpha dominates)
+  // Fix: mu_i = lam * (alpha/maxA) * avgDiag, so lam=1 → alpha matches risk penalty
+  const maxA=Math.max(1,...A.map(a=>a.alpha));
+  let avgDiag=0;for(let i=0;i<N;i++)avgDiag+=Sig[i][i];avgDiag/=N;
+  const mu=A.map(a=>lam*a.alpha/maxA*avgDiag);
+
+  // Scale kappa relative to the covariance diagonal so it competes with mu
+  // mu is now O(lam * avgDiag) ~ O(0.03-0.10)
+  // kappa should be similar magnitude: slider 0-10 → κ = slider * avgDiag * 0.5
+  const kappa=tcSlider*avgDiag*0.5;
+  log.push('T-Cost κ='+kappa.toFixed(4)+' (slider='+tcSlider.toFixed(1)+', avgDiag='+avgDiag.toFixed(4)+')');
+
+  const lo=new Float64Array(N),hi=new Float64Array(N);
+  for(let i=0;i<N;i++){
+    lo[i]=A[i].minW/100;hi[i]=A[i].maxW/100;
+    if(A[i].con==="nosell")lo[i]=Math.max(lo[i],A[i].hold$/tg);
+    if(A[i].con==="nobuy")hi[i]=Math.min(hi[i],A[i].hold$/tg);
+    if(lo[i]>hi[i]+1e-10){log.push('WARN: '+ETF[i].tk+' bounds conflict — clamping');const m=(lo[i]+hi[i])/2;lo[i]=m;hi[i]=m;}
+  }
+  const sLo=lo.reduce((a,b)=>a+b,0),sHi=hi.reduce((a,b)=>a+b,0);
+  if(sLo>1+1e-6){const s=.99/sLo;for(let i=0;i<N;i++)lo[i]*=s;log.push('WARN: floors scaled');}
+  if(sHi<1-1e-6){const s=1.01/sHi;for(let i=0;i<N;i++)hi[i]=Math.min(1,hi[i]*s);log.push('WARN: caps scaled');}
+  log.push('Feasibility ✓');
+  
+  // Build group constraints
+  const GC=[];
+  for(const L of CONS){for(const[gn,gs]of Object.entries(L.groups)){
+    const ix=[];ETF.forEach((e,i)=>{if(hasTag(e,L.field,gn))ix.push(i);});if(!ix.length)continue;
+    if(gs.max!==undefined)GC.push({ix,bd:gs.max/100,type:'upper',lbl:L.label+':'+gn+'≤'+gs.max+'%'});
+    if(gs.min!==undefined)GC.push({ix,bd:gs.min/100,type:'lower',lbl:L.label+':'+gn+'≥'+gs.min+'%'});
+  }}
+  log.push(GC.length+' group constraints');
+  const dual=new Float64Array(GC.length);
+
+  // Inner solve: includes turnover penalty via subgradient on |wᵢ - w0ᵢ|
+  // Subgradient of -κ|wᵢ-w0ᵢ| is -κ·sign(wᵢ-w0ᵢ)
+  // For the diagonal inner solve, we approximate: shift μᵢ by -κ·sign(wᵢ-w0ᵢ)
+  function innerSolve(pen,wPrev){
+    const dg=new Float64Array(N);for(let i=0;i<N;i++)dg[i]=Sig[i][i];
+    // Adjust mu for turnover penalty using previous iterate's direction
+    const muAdj=new Float64Array(N);
+    for(let i=0;i<N;i++){
+      const dir=wPrev?wPrev[i]-w0[i]:0;
+      muAdj[i]=mu[i]-pen[i]-(kappa>0?kappa*Math.sign(dir):0);
+    }
+    function sumW(nu){let s=0;for(let i=0;i<N;i++)s+=Math.max(lo[i],Math.min(hi[i],(muAdj[i]-nu)/dg[i]));return s;}
+    let nL=-100,nH=100;while(sumW(nL)<1&&nL>-1e4)nL-=100;while(sumW(nH)>1&&nH<1e4)nH+=100;
+    for(let b=0;b<60;b++){const m=(nL+nH)/2;if(sumW(m)>1)nL=m;else nH=m;}
+    const nu=(nL+nH)/2,w=new Float64Array(N);
+    for(let i=0;i<N;i++)w[i]=Math.max(lo[i],Math.min(hi[i],(muAdj[i]-nu)/dg[i]));
+    return w;
+  }
+
+  // Outer dual ascent
+  log.push('Phase 1: Dual ascent...');
+  let w=Float64Array.from(w0); // start from current weights
+  for(let t=0;t<500;t++){
+    const eta=.05/(1+t*.005);
+    const pen=new Float64Array(N);
+    for(let k=0;k<GC.length;k++){
+      for(const i of GC[k].ix){
+        if(GC[k].type==='upper')pen[i]+=dual[k];
+        else pen[i]-=dual[k];
+      }
+    }
+    w=innerSolve(pen,w);
+    let mv=0;
+    for(let k=0;k<GC.length;k++){let gs=0;for(const i of GC[k].ix)gs+=w[i];
+      if(GC[k].type==='upper'){dual[k]=Math.max(0,dual[k]+eta*(gs-GC[k].bd));mv=Math.max(mv,Math.max(0,gs-GC[k].bd));}
+      else{dual[k]=Math.max(0,dual[k]+eta*(GC[k].bd-gs));mv=Math.max(mv,Math.max(0,GC[k].bd-gs));}
+    }
+    if(t>50&&mv<1e-6){log.push('Converged iter '+t);break;}
+  }
+
+  // GP polish with FULL covariance matrix + turnover penalty
+  log.push('Phase 2: Full-cov GP polish...');
+  function project(x){
+    const p=Float64Array.from(x);
+    for(let it=0;it<200;it++){
+      let ch=false;
+      // 1. Box constraints
+      for(let i=0;i<N;i++){const o=p[i];p[i]=Math.max(lo[i],Math.min(hi[i],p[i]));if(Math.abs(p[i]-o)>1e-14)ch=true;}
+      // 2. Sum-to-1
+      let sum=0;for(let i=0;i<N;i++)sum+=p[i];
+      if(Math.abs(sum-1)>1e-10){
+        const ex=sum-1;
+        if(ex>0){let rm=0;for(let i=0;i<N;i++)rm+=(p[i]-lo[i]);if(rm>1e-12)for(let i=0;i<N;i++){p[i]-=ex*(p[i]-lo[i])/rm;p[i]=Math.max(lo[i],p[i]);}}
+        else{let rm=0;for(let i=0;i<N;i++)rm+=(hi[i]-p[i]);if(rm>1e-12)for(let i=0;i<N;i++){p[i]-=ex*(hi[i]-p[i])/rm;p[i]=Math.min(hi[i],p[i]);}}
+        ch=true;
+      }
+      // 3. Group constraints — redistribute excess to non-group members
+      for(const gc of GC){
+        let gs=0;for(const i of gc.ix)gs+=p[i];
+        if(gc.type==='upper'&&gs>gc.bd+1e-10){
+          const excess=gs-gc.bd;
+          // Scale down group members proportionally to their headroom above floor
+          let rm=0;for(const i of gc.ix)rm+=(p[i]-lo[i]);
+          if(rm>1e-12){
+            for(const i of gc.ix){p[i]-=excess*(p[i]-lo[i])/rm;p[i]=Math.max(lo[i],p[i]);}
+          }
+          // Redistribute excess to non-group members proportionally to their headroom below cap
+          const nonIx=[];for(let i=0;i<N;i++)if(!gc.ix.includes(i))nonIx.push(i);
+          let cap=0;for(const i of nonIx)cap+=(hi[i]-p[i]);
+          if(cap>1e-12){
+            const actualExcess=excess;
+            for(const i of nonIx){p[i]+=actualExcess*(hi[i]-p[i])/cap;p[i]=Math.min(hi[i],p[i]);}
+          }
+          ch=true;
+        }
+        if(gc.type==='lower'&&gs<gc.bd-1e-10){
+          const deficit=gc.bd-gs;
+          let rm=0;for(const i of gc.ix)rm+=(hi[i]-p[i]);
+          if(rm>1e-12){
+            for(const i of gc.ix){p[i]+=deficit*(hi[i]-p[i])/rm;p[i]=Math.min(hi[i],p[i]);}
+          }
+          ch=true;
+        }
+      }
+      if(!ch)break;
+    }
+    // Final normalization — gentle, preserves group constraints better
+    let s=0;for(let i=0;i<N;i++)s+=p[i];
+    if(s>1e-10&&Math.abs(s-1)>1e-10){
+      for(let i=0;i<N;i++)p[i]/=s;
+      // Re-clamp boxes after normalization
+      for(let i=0;i<N;i++)p[i]=Math.max(lo[i],Math.min(hi[i],p[i]));
+    }
+    return p;
+  }
+  // Full objective: αᵀw − ½wᵀΣw − κΣ|wᵢ−w0ᵢ|
+  function fullObj(ww){
+    let ob=0;
+    for(let i=0;i<N;i++){ob+=mu[i]*ww[i];for(let j=0;j<N;j++)ob-=0.5*ww[i]*Sig[i][j]*ww[j];}
+    if(kappa>0)for(let i=0;i<N;i++)ob-=kappa*Math.abs(ww[i]-w0[i]);
+    return ob;
+  }
+  // Gradient: ∇(αᵀw − ½wᵀΣw) = α − Σw, plus subgradient of −κ|wᵢ−w0ᵢ|
+  let bestObj=fullObj(w),bW=Float64Array.from(w);
+  for(let t=0;t<2000;t++){
+    const lr=.002/(1+t*.001),g=new Float64Array(N);
+    for(let i=0;i<N;i++){
+      g[i]=mu[i];
+      for(let j=0;j<N;j++)g[i]-=Sig[i][j]*w[j];
+      // Subgradient of −κ|wᵢ−w0ᵢ|
+      if(kappa>0){
+        const diff=w[i]-w0[i];
+        if(Math.abs(diff)>1e-10)g[i]-=kappa*Math.sign(diff);
+        // At w=w0, subgradient is 0 (stay put is free)
+      }
+    }
+    const wn=new Float64Array(N);for(let i=0;i<N;i++)wn[i]=w[i]+lr*g[i]; // ascend
+    const wp=project(wn);
+    const ob=fullObj(wp);
+    if(ob>bestObj-1e-14){bestObj=ob;bW=wp;w=wp;}
+  }
+  w=bW;
+
+  // Validate and hard-clamp group constraints
+  const TOL=.005;let viol=0;let sum=0;for(let i=0;i<N;i++)sum+=w[i];
+  if(Math.abs(sum-1)>TOL){for(let i=0;i<N;i++)w[i]/=sum;viol++;}
+  for(let i=0;i<N;i++){if(w[i]<lo[i]-TOL||w[i]>hi[i]+TOL)viol++;}
+  // Hard-clamp group constraints: if a group exceeds its bound, scale it down and redistribute
+  for(const gc of GC){let gs=0;for(const i of gc.ix)gs+=w[i];
+    if(gc.type==='upper'&&gs>gc.bd+0.001){
+      log.push('CLAMP: '+gc.lbl+' was '+(gs*100).toFixed(1)+'% → clamping to '+(gc.bd*100).toFixed(0)+'%');
+      const excess=gs-gc.bd;
+      let rm=0;for(const i of gc.ix)rm+=(w[i]-lo[i]);
+      if(rm>1e-12){for(const i of gc.ix){w[i]-=excess*(w[i]-lo[i])/rm;w[i]=Math.max(lo[i],w[i]);}}
+      // Give excess to non-group proportionally
+      const nonIx=[];for(let i=0;i<N;i++)if(!gc.ix.includes(i))nonIx.push(i);
+      let cap=0;for(const i of nonIx)cap+=(hi[i]-w[i]);
+      if(cap>1e-12){for(const i of nonIx){w[i]+=excess*(hi[i]-w[i])/cap;w[i]=Math.min(hi[i],w[i]);}}
+    }
+    if(gc.type==='lower'&&gs<gc.bd-0.001){
+      log.push('CLAMP: '+gc.lbl+' was '+(gs*100).toFixed(1)+'% → clamping to '+(gc.bd*100).toFixed(0)+'%');
+      const deficit=gc.bd-gs;
+      let rm=0;for(const i of gc.ix)rm+=(hi[i]-w[i]);
+      if(rm>1e-12){for(const i of gc.ix){w[i]+=deficit*(hi[i]-w[i])/rm;w[i]=Math.min(hi[i],w[i]);}}
+    }
+  }
+  // Re-normalize after clamping
+  sum=0;for(let i=0;i<N;i++)sum+=w[i];
+  if(Math.abs(sum-1)>1e-6){for(let i=0;i<N;i++)w[i]/=sum;}
+  // Final violation check
+  for(const gc of GC){let gs=0;for(const i of gc.ix)gs+=w[i];
+    if(gc.type==='upper'&&gs>gc.bd+TOL){log.push('WARN: '+gc.lbl+' at '+(gs*100).toFixed(1)+'%');viol++;}
+    if(gc.type==='lower'&&gs<gc.bd-TOL){log.push('WARN: '+gc.lbl+' at '+(gs*100).toFixed(1)+'%');viol++;}}
+  const ms=performance.now()-t0;
+  let pVar=0;for(let i=0;i<N;i++)for(let j=0;j<N;j++)pVar+=w[i]*Sig[i][j]*w[j];
+  const portVol=Math.sqrt(Math.max(0,pVar))*100;
+  // Compute turnover
+  let turnover=0;for(let i=0;i<N;i++)turnover+=Math.abs(w[i]-w0[i]);
+  turnover*=100; // as %
+  if(!viol)log.push('✓ All '+GC.length+' group + '+N+' box OK');else log.push(viol+' violations');
+  log.push('Portfolio vol: '+portVol.toFixed(2)+'% · Turnover: '+turnover.toFixed(1)+'%');
+  log.push('Solved '+ms.toFixed(0)+'ms');
+  // Round to 0.1% precision, then adjust largest position so weights sum to exactly 100.0
+  // Guard against NaN — if anything went wrong, fall back to current weights
+  let hasNaN=false;
+  for(let i=0;i<N;i++){if(!isFinite(w[i])){hasNaN=true;break;}}
+  if(hasNaN){
+    log.push('⚠ NaN detected in solution — falling back to current weights');
+    const ca=curAUM();
+    for(let i=0;i<N;i++)w[i]=ca>0?A[i].hold$/ca:1/N;
+  }
+  const wPct=Array.from(w).map(v=>isFinite(v)?Math.round(v*1e3)/10:0);
+  const rSum=wPct.reduce((a,b)=>a+(isFinite(b)?b:0),0);
+  if(Math.abs(rSum-100)>0.01&&rSum>0){
+    // Find the largest weight and adjust it
+    let maxIdx=0;for(let i=1;i<N;i++)if(wPct[i]>wPct[maxIdx])maxIdx=i;
+    wPct[maxIdx]=Math.round((wPct[maxIdx]+(100-rSum))*10)/10;
+  }
+  return{w:wPct,log,ok:!viol&&!hasNaN,ms};
+}
+
+// ═══ HELPERS ═══
+function f$(v){return v<1e3?Math.round(v).toString():v.toLocaleString('en-US',{maximumFractionDigits:0});}
+function fC(v){const a=Math.abs(v),s=a>=1e6?'$'+(a/1e6).toFixed(1)+'M':'$'+f$(a);return(v>=0?'+':'-')+s;}
+// Trade badge — uses integer-share notional to match Trade File tab exactly
+function tBdg(c,f,px){
+  const dTarget=f-c;
+  if(Math.abs(dTarget)<500||!px||px<=0)return'<span style="color:var(--tm)">—</span>';
+  const shares=Math.round(dTarget/px);
+  if(shares===0)return'<span style="color:var(--tm)">—</span>';
+  const d=shares*px; // actual integer-share notional
+  const l=Math.abs(d)>=1e6?(Math.abs(d)/1e6).toFixed(2)+'M':(Math.abs(d)/1e3).toFixed(0)+'K';
+  return'<span style="font-weight:600;color:'+(d>0?'var(--g)':'var(--r)')+'" title="'+Math.abs(shares).toLocaleString()+' shares">'+(d>0?'+':'-')+'$'+l+'</span>';
+}
+function cyc(el,i){const c=A[i].con;if(c==="none"){A[i].con="nosell";el.className="ct ct-ns";el.textContent="NO SELL";}else if(c==="nosell"){A[i].con="nobuy";el.className="ct ct-nb";el.textContent="NO BUY";}else{A[i].con="none";el.className="ct ct-n";el.textContent="—";}}
+function parseCF(){const v=parseFloat($('cfNew').value.replace(/[,$\s]/g,''));if(!isNaN(v)){NEW$=v;rFull();}}
+function uStr(){const v=+$('strIn').value,b=$('strB');if(v<30){b.textContent='CALM';b.style.background='var(--g2)';b.style.color='var(--g)';}else if(v<70){b.textContent='NORMAL';b.style.background='var(--a2)';b.style.color='var(--a)';}else{b.textContent='CRISIS';b.style.background='var(--r2)';b.style.color='var(--r)';}}
+function hMsg(m,t){const s=$('hSt');if(!s)return;s.textContent=m;s.style.display='inline';s.style.background=t==='ok'?'var(--gB)':'var(--rB)';s.style.color=t==='ok'?'var(--g)':'var(--r)';setTimeout(()=>{s.style.display='none';},3500);}
+
+// ═══ ① HOLDINGS ═══
+let holdSort={col:'idx',asc:true};
+function holdSortBy(col){if(holdSort.col===col)holdSort.asc=!holdSort.asc;else{holdSort.col=col;holdSort.asc=col==='tk'||col==='nm'||col==='cat';}rHold();}
+function holdOrder(){
+  const ix=ETF.map((_,i)=>i);
+  const ca=curAUM();
+  const sc=holdSort.col,dir=holdSort.asc?1:-1;
+  ix.sort((a,b)=>{
+    let va,vb;
+    if(sc==='idx')return(a-b)*dir;
+    if(sc==='tk'){va=ETF[a].tk;vb=ETF[b].tk;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='nm'){va=ETF[a].nm;vb=ETF[b].nm;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='cat'){va=ETF[a].cat;vb=ETF[b].cat;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='hold'){va=A[a].hold$;vb=A[b].hold$;}
+    else if(sc==='wt'){va=ca>0?A[a].hold$/ca:0;vb=ca>0?A[b].hold$/ca:0;}
+    else if(sc==='px'){va=ETF[a].px;vb=ETF[b].px;}
+    else if(sc==='sh'){va=ETF[a].px>0?A[a].hold$/ETF[a].px:0;vb=ETF[b].px>0?A[b].hold$/ETF[b].px:0;}
+    else{va=a;vb=b;}
+    return(va-vb)*dir;
+  });
+  return ix;
+}
+function rHold(){
+  const ca=curAUM();
+  function sa(col){return holdSort.col===col?(holdSort.asc?' ▲':' ▼'):'';}
+  let h='<div class="pp"><div class="pp-t">Current Holdings</div><div class="pp-sub">Enter dollar value per ETF. Paste "TICKER AMOUNT" below or type directly.</div>';
+  h+='<div class="gt"><table><thead><tr>';
+  h+='<th class="srt" style="width:50px" onclick="holdSortBy(\'tk\')">Ticker'+sa('tk')+'</th>';
+  h+='<th class="srt" onclick="holdSortBy(\'nm\')">Asset'+sa('nm')+'</th>';
+  h+='<th class="srt" onclick="holdSortBy(\'cat\')">Category'+sa('cat')+'</th>';
+  h+='<th class="r srt" onclick="holdSortBy(\'hold\')">Holdings ($)'+sa('hold')+'</th>';
+  h+='<th class="r srt" onclick="holdSortBy(\'wt\')">Wt %'+sa('wt')+'</th>';
+  h+='<th class="r srt" onclick="holdSortBy(\'px\')">Price'+sa('px')+'</th>';
+  h+='<th class="r srt" onclick="holdSortBy(\'sh\')">Shares'+sa('sh')+'</th>';
+  h+='</tr></thead><tbody>';
+  const order=holdOrder();
+  order.forEach(i=>{const e=ETF[i];const w=ca>0?(A[i].hold$/ca*100):0,sh=e.px>0?Math.floor(A[i].hold$/e.px):0;const c=XC[e.cat]||'#718096';
+    h+='<tr><td><span class="tk">'+e.tk+'</span></td><td class="an2">'+e.nm+'</td><td><span class="rg" style="background:'+c+'12;color:'+c+'">'+e.cat+'</span></td>';
+    h+='<td class="r"><input class="gi num" value="'+(A[i].hold$>0?f$(A[i].hold$):'')+'" placeholder="0" onchange="sH('+i+',this.value)"/></td>';
+    h+='<td class="r" style="color:'+(w>0?'var(--tb)':'var(--tm)')+'">'+w.toFixed(1)+'%</td>';
+    h+='<td class="r"><input class="gi pr" value="'+e.px.toFixed(2)+'" onchange="ETF['+i+'].px=parseFloat(this.value)||1;rHold()"/></td>';
+    h+='<td class="r" style="color:var(--td)">'+(sh>0?f$(sh):'—')+'</td></tr>';});
+  h+='</tbody><tfoot><tr class="ft"><td colspan="3" style="color:var(--b)">TOTAL</td><td class="r">$'+f$(ca)+'</td><td class="r">'+(ca>0?'100.0%':'0%')+'</td><td></td><td></td></tr></tfoot></table></div>';
+  h+='<div class="hpa" style="margin-top:14px"><div style="font-size:11px;color:var(--td);margin-bottom:3px;font-weight:600">PASTE FROM SPREADSHEET</div><textarea id="paA" placeholder="SPY  9700000\nQQQ  4850000"></textarea></div>';
+  // CSV upload
+  h+='<div id="csvDrop" style="margin-top:10px;padding:16px;border:2px dashed var(--bd);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s" onclick="document.getElementById(\'csvIn\').click()" ondragover="event.preventDefault();this.style.borderColor=\'var(--b)\';this.style.background=\'var(--b2)\'" ondragleave="this.style.borderColor=\'var(--bd)\';this.style.background=\'transparent\'" ondrop="event.preventDefault();this.style.borderColor=\'var(--bd)\';this.style.background=\'transparent\';handleCSV(event.dataTransfer.files[0])">';
+  h+='<div style="font-size:11px;font-weight:600;color:var(--td)">📄 Drop CSV here or click to upload</div>';
+  h+='<div style="font-size:10px;color:var(--tm);margin-top:3px">Expected columns: Ticker, Amount — or Ticker, Shares, Price</div>';
+  h+='<input type="file" id="csvIn" accept=".csv,.tsv,.txt" style="display:none" onchange="handleCSV(this.files[0])"/></div>';
+  h+='<div class="ha"><button class="btn btn-grn" onclick="applyH()">✓ Apply → Optimizer</button><button class="btn btn-rs" onclick="parseP()">📋 Parse Text</button><button class="btn btn-rs" onclick="loadSamp()">Load TAA1 ($687K)</button><span class="hst" id="hSt"></span></div></div>';
+  $('pg-hold').innerHTML=h;uTop();
+}
+function sH(i,v){A[i].hold$=parseFloat(v.replace(/,/g,''))||0;rHold();}
+function parseP(){const ta=document.querySelector('#paA');if(!ta)return;const ls=ta.value.trim().split('\n');let m=0;ls.forEach(l=>{const p=l.trim().split(/[\t,\s]+/);if(p.length>=2){const t=p[0].toUpperCase(),v=parseFloat(p[1].replace(/[,$]/g,''));const x=ETF.findIndex(e=>e.tk===t);if(x>=0&&!isNaN(v)){A[x].hold$=v;m++;}}});rHold();hMsg(m+'/'+ls.length+' parsed','ok');}
+
+function handleCSV(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const txt=ev.target.result;
+    const lines=txt.trim().split(/\r?\n/);
+    if(lines.length<1)return;
+    // Detect header row — skip if first cell doesn't match any ticker
+    let start=0;
+    const firstTk=lines[0].trim().split(/[\t,]+/)[0].toUpperCase();
+    if(ETF.findIndex(e=>e.tk===firstTk)<0)start=1; // likely header
+    // Detect columns: find which column has tickers, which has amounts
+    let matched=0;
+    for(let r=start;r<lines.length;r++){
+      const cols=lines[r].trim().split(/[\t,]+/).map(c=>c.trim());
+      if(cols.length<2)continue;
+      const tk=cols[0].toUpperCase().replace(/['"]/g,'');
+      const idx=ETF.findIndex(e=>e.tk===tk);
+      if(idx<0)continue;
+      if(cols.length>=3){
+        // Could be Ticker, Shares, Price → compute dollar value
+        const v1=parseFloat(cols[1].replace(/[,$"]/g,'')),v2=parseFloat(cols[2].replace(/[,$"]/g,''));
+        if(!isNaN(v1)&&!isNaN(v2)&&v2>0&&v2<10000&&v1>0){
+          // Heuristic: if col2 looks like a price (<10000) and col1 looks like shares
+          A[idx].hold$=v1*v2;ETF[idx].px=v2;matched++;
+        }else if(!isNaN(v1)){A[idx].hold$=v1;matched++;}
+      }else{
+        const v=parseFloat(cols[1].replace(/[,$"]/g,''));
+        if(!isNaN(v)){A[idx].hold$=v;matched++;}
+      }
+    }
+    rHold();hMsg(matched+'/'+(lines.length-start)+' from CSV','ok');
+  };
+  reader.readAsText(file);
+}
+function applyH(){const ca=curAUM();if(ca<=0){hMsg('Enter holdings','err');return;}syncCls();ETF.forEach((e,i)=>{e.cw=A[i].hold$/ca*100;A[i].finW=e.cw;});
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-t="opt"]').classList.add('on');$('pg-opt').classList.add('on');rFull();}
+function loadSamp(){ETF.forEach((e,i)=>{A[i].hold$=SAMP[e.tk]||0;});NEW$=0;$('cfNew').value='0';rHold();hMsg('TAA1 loaded ($687K)','ok');}
+
+// ═══ ② CLASSIFICATION ═══
+function addTheme(i){
+  const inp=document.querySelector('#thAdd'+i);if(!inp)return;
+  const v=inp.value.trim();if(!v)return;
+  if(!ETF[i].theme.includes(v))ETF[i].theme.push(v);
+  inp.value='';syncCls();rCls();
+}
+function rmTheme(i,t){ETF[i].theme=ETF[i].theme.filter(x=>x!==t);syncCls();rCls();}
+let clsSort={col:'idx',asc:true};
+function clsSortBy(col){if(clsSort.col===col)clsSort.asc=!clsSort.asc;else{clsSort.col=col;clsSort.asc=col==='tk'||col==='nm'||col==='cat'||col==='geo'||col==='risk';}rCls();}
+function clsOrder(){
+  const ix=ETF.map((_,i)=>i);
+  const sc=clsSort.col,dir=clsSort.asc?1:-1;
+  ix.sort((a,b)=>{
+    let va,vb;
+    if(sc==='idx')return(a-b)*dir;
+    if(sc==='tk'){va=ETF[a].tk;vb=ETF[b].tk;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='nm'){va=ETF[a].nm;vb=ETF[b].nm;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='cat'){va=ETF[a].cat;vb=ETF[b].cat;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='geo'){va=ETF[a].geo;vb=ETF[b].geo;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='risk'){va=ETF[a].risk;vb=ETF[b].risk;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='themes'){va=ETF[a].theme.length;vb=ETF[b].theme.length;return(va-vb)*dir;}
+    return(a-b)*dir;
+  });
+  return ix;
+}
+function rCls(){
+  const themes=getOpts('theme'),risks=getOpts('risk'),geos=getOpts('geo');
+  const thDL=themes.map(t=>'<option value="'+t+'">').join('');
+  const rkDL=risks.map(t=>'<option value="'+t+'">').join('');
+  const geDL=geos.map(t=>'<option value="'+t+'">').join('');
+  function sa(col){return clsSort.col===col?(clsSort.asc?' ▲':' ▼'):'';}
+  let h='<div class="pp"><div class="pp-t">ETF Classification</div><div class="pp-sub">Assign each ETF themes (multi-tag), risk class, and geography. Type any new name to create a custom group.</div>';
+  h+='<div class="gt"><table><thead><tr>';
+  h+='<th class="srt" style="width:50px" onclick="clsSortBy(\'tk\')">Ticker'+sa('tk')+'</th>';
+  h+='<th class="srt" onclick="clsSortBy(\'nm\')">Asset'+sa('nm')+'</th>';
+  h+='<th class="c srt" onclick="clsSortBy(\'cat\')">Class'+sa('cat')+'</th>';
+  h+='<th class="c srt" onclick="clsSortBy(\'geo\')">Geo'+sa('geo')+'</th>';
+  h+='<th class="srt" style="min-width:200px" onclick="clsSortBy(\'themes\')">Themes'+sa('themes')+'</th>';
+  h+='<th class="c srt" onclick="clsSortBy(\'risk\')">Risk'+sa('risk')+'</th>';
+  h+='</tr></thead><tbody>';
+  const order=clsOrder();
+  order.forEach(i=>{
+    const e=ETF[i];
+    const c=XC[e.cat]||'#718096';
+    const rc=e.risk==='High'?'#dc2626':e.risk==='Low'?'#0d9668':'#b45309';
+    h+='<tr><td><span class="tk">'+e.tk+'</span></td><td class="an2">'+e.nm+'</td>';
+    h+='<td class="c"><span class="rg" style="background:'+c+'12;color:'+c+'">'+e.cat+'</span></td>';
+    h+='<td class="c"><input class="gi tag" list="ge'+i+'" value="'+e.geo+'" onchange="ETF['+i+'].geo=this.value.trim();syncCls();rCls()" style="color:#7c3aed;background:#7c3aed10;width:56px"/><datalist id="ge'+i+'">'+geDL+'</datalist></td>';
+    h+='<td><div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">';
+    e.theme.forEach(t=>{
+      h+='<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;color:#0d9668;background:#0d966812">'+t+'<span onclick="rmTheme('+i+',\''+t.replace(/'/g,"\\'")+'\')" style="cursor:pointer;color:#0d9668;opacity:.5;margin-left:2px;font-size:12px">×</span></span>';
+    });
+    h+='<input class="gi" id="thAdd'+i+'" list="thDL'+i+'" placeholder="+ add" onchange="addTheme('+i+')" style="width:62px;font-size:10px;padding:2px 4px;color:#0d9668;background:#0d966808;border-color:#0d966820"/><datalist id="thDL'+i+'">'+thDL+'</datalist>';
+    h+='</div></td>';
+    h+='<td class="c"><input class="gi tag" list="rk'+i+'" value="'+(e.risk||'')+'" placeholder="—" onchange="ETF['+i+'].risk=this.value.trim();syncCls();rCls()" style="color:'+rc+';background:'+rc+'10;width:56px"/><datalist id="rk'+i+'">'+rkDL+'</datalist></td>';
+    h+='</tr>';});
+  h+='</tbody></table></div>';
+  // Summary of groups
+  h+='<div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">';
+  [{f:'theme',l:'Themes',c:'#0d9668'},{f:'risk',l:'Risk Classes',c:'#b45309'},{f:'geo',l:'Geographies',c:'#7c3aed'}].forEach(d=>{
+    const vals=getOpts(d.f);
+    h+='<div style="background:var(--pn);border:1px solid var(--bd);border-radius:6px;padding:12px"><div style="font-family:var(--fs);font-size:12px;font-weight:700;color:'+d.c+';margin-bottom:8px">'+d.l+' ('+vals.length+')</div>';
+    vals.forEach(v=>{const cnt=ETF.filter(e=>hasTag(e,d.f,v)).length;h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--tb)">'+v+'</span><span style="color:var(--td)">'+cnt+' ETFs</span></div>';});
+    h+='</div>';
+  });
+  h+='</div></div>';
+  $('pg-cls').innerHTML=h;
+}
+
+// ═══ ③ COUNTRY MODEL ═══
+// Country → ETF mapping. Each ETF can map to one or more countries.
+const CTY_MAP={
+  // US single-country
+  'SPY':['United States'],'XLI':['United States'],'SMH':['United States'],
+  // Single-country ETFs (DM)
+  'EWJ':['Japan'],
+  'EWP':['Spain'],
+  'EWI':['Italy'],
+  'GREK':['Greece'],
+  // Single-country EM
+  'EPOL':['Poland'],
+  'EZA':['South Africa'],
+  'ECH':['Chile'],
+  'EIS':['Israel'],
+  'EPU':['Peru'],
+  // Multi-country
+  'FEZ':['Germany','France','Spain','Italy','Netherlands'],
+  // Non-country (commodities, bonds, cash)
+  'SHY':[],'GLD':[],'USO':[],'COPX':[]
+};
+
+// Country model scores — user inputs or imports
+// analystAlpha: manual analyst technical alpha (0-3, null = unset)
+// finalSource: 'model' | 'analyst' — which to use for optimizer
+let CM_DATA=[
+  // EM
+  {country:'Korea, Rep.',region:'Asia',score:88.9,value:51.6,momentum:100.0,liquidity:31.9,analystAlpha:null,finalSource:'model'},
+  {country:'Taiwan',region:'Asia',score:41.8,value:43.9,momentum:46.9,liquidity:28.1,analystAlpha:null,finalSource:'model'},
+  {country:'Malaysia',region:'Asia',score:38.8,value:50.4,momentum:43.4,liquidity:35.5,analystAlpha:null,finalSource:'model'},
+  {country:'Thailand',region:'Asia',score:36.1,value:63.4,momentum:47.9,liquidity:45.8,analystAlpha:null,finalSource:'model'},
+  {country:'South Africa',region:'EMEA',score:34.5,value:64.0,momentum:54.5,liquidity:54.5,analystAlpha:null,finalSource:'model'},
+  {country:'Mexico',region:'LatAm',score:33.9,value:67.9,momentum:48.6,liquidity:50.1,analystAlpha:null,finalSource:'model'},
+  {country:'Israel',region:'EMEA',score:33.5,value:55.0,momentum:48.0,liquidity:42.0,analystAlpha:null,finalSource:'model'},
+  {country:'Brazil',region:'LatAm',score:32.4,value:69.5,momentum:50.0,liquidity:40.8,analystAlpha:null,finalSource:'model'},
+  {country:'Poland',region:'EMEA',score:30.8,value:74.8,momentum:41.5,liquidity:54.8,analystAlpha:null,finalSource:'model'},
+  {country:'Peru',region:'LatAm',score:28.0,value:62.0,momentum:30.0,liquidity:35.0,analystAlpha:null,finalSource:'model'},
+  {country:'Chile',region:'LatAm',score:26.7,value:68.8,momentum:32.2,liquidity:41.4,analystAlpha:null,finalSource:'model'},
+  {country:'India',region:'Asia',score:21.5,value:35.0,momentum:28.0,liquidity:25.0,analystAlpha:null,finalSource:'model'},
+  {country:'China',region:'Asia',score:18.2,value:42.0,momentum:22.5,liquidity:18.0,analystAlpha:null,finalSource:'model'},
+  {country:'Turkey',region:'EMEA',score:15.0,value:55.0,momentum:18.0,liquidity:30.0,analystAlpha:null,finalSource:'model'},
+  // DM
+  {country:'United States',region:'DM',score:35.0,value:40.0,momentum:55.0,liquidity:15.0,analystAlpha:null,finalSource:'model'},
+  {country:'Japan',region:'DM',score:32.0,value:48.0,momentum:42.0,liquidity:28.0,analystAlpha:null,finalSource:'model'},
+  {country:'Greece',region:'DM',score:31.0,value:58.0,momentum:38.0,liquidity:32.0,analystAlpha:null,finalSource:'model'},
+  {country:'Spain',region:'DM',score:29.0,value:50.0,momentum:36.0,liquidity:25.0,analystAlpha:null,finalSource:'model'},
+  {country:'Italy',region:'DM',score:27.0,value:52.0,momentum:34.0,liquidity:24.0,analystAlpha:null,finalSource:'model'},
+  {country:'Germany',region:'DM',score:25.0,value:52.0,momentum:30.0,liquidity:24.0,analystAlpha:null,finalSource:'model'},
+  {country:'France',region:'DM',score:27.0,value:50.0,momentum:35.0,liquidity:22.0,analystAlpha:null,finalSource:'model'},
+  {country:'Netherlands',region:'DM',score:26.0,value:44.0,momentum:36.0,liquidity:20.0,analystAlpha:null,finalSource:'model'},
+];
+
+// Helper: compute final alpha for a country (0-3 or null)
+function finalAlphaFor(c,mean,std){
+  if(c.finalSource==='analyst'&&c.analystAlpha!==null)return c.analystAlpha;
+  // Default: model alpha from z-score
+  const z=(c.score-mean)/std;
+  return z>1.0?3:z>0.3?2:z>-0.3?1:0;
+}
+
+// Edit handlers for country model table
+function setAnalystAlpha(country,v){
+  const c=CM_DATA.find(d=>d.country===country);if(!c)return;
+  const s=v.trim();
+  if(s===''){c.analystAlpha=null;if(c.finalSource==='analyst')c.finalSource='model';}
+  else{
+    const n=parseFloat(s);
+    if(isNaN(n)){return;}
+    c.analystAlpha=Math.max(0,Math.min(3,Math.round(n)));
+    // Auto-switch to analyst when a value is entered
+    c.finalSource='analyst';
+  }
+  rCM();
+}
+function setFinalSource(country,src){
+  const c=CM_DATA.find(d=>d.country===country);if(!c)return;
+  c.finalSource=src;
+  rCM();
+}
+// Bulk: set all final sources
+function setAllFinalSource(src){
+  CM_DATA.forEach(c=>{
+    if(src==='analyst'&&c.analystAlpha===null)return; // skip if no analyst value
+    c.finalSource=src;
+  });
+  rCM();
+}
+
+// Add a new blank country row
+function addCountry(){
+  const name=prompt('Country name:');
+  if(!name||!name.trim())return;
+  const nm=name.trim();
+  if(CM_DATA.find(d=>d.country===nm)){alert('Country already exists');return;}
+  CM_DATA.push({
+    country:nm,
+    region:'',
+    score:0,
+    value:0,
+    momentum:0,
+    liquidity:0,
+    analystAlpha:null,
+    finalSource:'model'
+  });
+  rCM();
+}
+
+// Remove a country
+function removeCountry(country){
+  if(!confirm('Remove "'+country+'" from country model?'))return;
+  const idx=CM_DATA.findIndex(d=>d.country===country);
+  if(idx>=0){CM_DATA.splice(idx,1);rCM();}
+}
+
+// Promote a watchlist country to the optimizer by adding an ETF
+function promoteCountry(country){
+  const tk=prompt('ETF ticker for '+country+' (e.g. EIDO for Indonesia, EWY for Korea):');
+  if(!tk||!tk.trim())return;
+  const ticker=tk.trim().toUpperCase();
+  if(ETF.find(e=>e.tk===ticker)){alert('Ticker '+ticker+' already exists in universe');return;}
+  const nm=prompt('ETF name:','iShares MSCI '+country);
+  if(!nm||!nm.trim())return;
+  const pxStr=prompt('Current price ($):','50.00');
+  if(pxStr===null)return;
+  const px=parseFloat(pxStr);
+  if(isNaN(px)||px<=0){alert('Invalid price — must be a positive number');return;}
+  const volStr=prompt('Annualized volatility % (e.g. 22 for EM, 16 for DM):','22');
+  if(volStr===null)return;
+  const vol=parseFloat(volStr);
+  if(isNaN(vol)||vol<=0){alert('Invalid vol — must be a positive number');return;}
+  const isEM=confirm('Classify '+ticker+' as Emerging Market?\n\nOK = EM geography\nCancel = Developed Market');
+  const cat='Equity'; // All country ETFs are equities; geography tracks EM vs DM
+  const geo=isEM?'EM':'DM';
+  const risk=isEM?'High':'Med';
+  // Add to ETF universe
+  ETF.push({tk:ticker,nm:nm.trim(),cat,geo,theme:[],risk,vol,px});
+  A.push({hold$:0,finW:0,minW:0,maxW:6,alpha:2,con:'none'});
+  N=ETF.length; // keep N in sync (declared with let)
+  // Map to country
+  CTY_MAP[ticker]=[country];
+  // Reset finW for ALL ETFs to current weights (clears any stale state and ensures solver starts clean)
+  const ca=curAUM();
+  for(let i=0;i<N;i++){A[i].finW=ca>0?A[i].hold$/ca*100:0;}
+  // Re-sync classification groups so new geo/risk appear in constraints
+  syncCls();
+  // Re-render everything
+  rCM();rHold();rPort();
+  alert(ticker+' added.\n\n'+ticker+' ('+nm+')\nCategory: '+cat+' · Geo: '+geo+' · Risk: '+risk+' · Vol: '+vol+'% · Price: $'+px+'\n\nNext: click OPTIMIZE to get a new allocation.');
+}
+
+// Edit any field of a country
+function setCountryField(country,field,v){
+  const c=CM_DATA.find(d=>d.country===country);if(!c)return;
+  if(field==='country'){
+    const nm=v.trim();
+    if(!nm)return;
+    if(CM_DATA.find(d=>d.country===nm&&d!==c)){alert('Country name already exists');rCM();return;}
+    c.country=nm;
+  }else if(field==='region'){
+    c.region=v.trim();
+  }else{
+    const n=parseFloat(v);
+    c[field]=isNaN(n)?0:n;
+  }
+  rCM();
+}
+
+// Check if a country has ETFs in the portfolio mapped to it
+function countryInPortfolio(country){
+  for(const tk of Object.keys(CTY_MAP)){
+    if(CTY_MAP[tk].includes(country))return true;
+  }
+  return false;
+}
+
+// Compute ETF alpha from country model using the per-country final alpha
+// (Model or Analyst, based on finalSource)
+function cmToAlpha(){
+  const scores=CM_DATA.map(c=>c.score);
+  const n=scores.length;if(n<2)return;
+  const mean=scores.reduce((a,b)=>a+b,0)/n;
+  const std=Math.sqrt(scores.reduce((s,v)=>s+(v-mean)**2,0)/n)||1;
+
+  // Build country → final alpha lookup
+  const finalA={};
+  CM_DATA.forEach(c=>{finalA[c.country]=finalAlphaFor(c,mean,std);});
+
+  // Map to ETFs: for multi-country ETFs, take average of final alphas, rounded
+  ETF.forEach((e,i)=>{
+    const countries=CTY_MAP[e.tk]||[];
+    if(!countries.length)return; // no country mapping (bonds, commodities, cash)
+    let sumA=0,cnt=0;
+    countries.forEach(c=>{if(finalA[c]!==undefined){sumA+=finalA[c];cnt++;}});
+    if(cnt===0)return;
+    const avgA=sumA/cnt;
+    // Round to nearest integer 0-3
+    A[i].alpha=Math.max(0,Math.min(3,Math.round(avgA)));
+  });
+}
+
+function handleCMFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const txt=ev.target.result;
+    const lines=txt.trim().split(/\r?\n/);
+    if(lines.length<2)return;
+    // Parse header
+    const hdr=lines[0].split(/[\t,]+/).map(h=>h.trim().toLowerCase());
+    const iCountry=hdr.findIndex(h=>h.includes('country'));
+    const iRegion=hdr.findIndex(h=>h.includes('region'));
+    const iScore=hdr.findIndex(h=>h.includes('score')&&!h.includes('value')&&!h.includes('mom')&&!h.includes('liq'));
+    const iValue=hdr.findIndex(h=>h.includes('value'));
+    const iMom=hdr.findIndex(h=>h.includes('mom'));
+    const iLiq=hdr.findIndex(h=>h.includes('liq'));
+    const iAnalyst=hdr.findIndex(h=>h.includes('analyst')||h.includes('manual'));
+    if(iCountry<0||iScore<0){alert('CSV must have Country and Score columns');return;}
+    const parsed=[];
+    for(let r=1;r<lines.length;r++){
+      const cols=lines[r].split(/[\t,]+/).map(c=>c.trim());
+      if(cols.length<2)continue;
+      let aAlpha=null;
+      if(iAnalyst>=0&&cols[iAnalyst]){
+        const v=parseFloat(cols[iAnalyst]);
+        if(!isNaN(v))aAlpha=Math.max(0,Math.min(3,Math.round(v)));
+      }
+      parsed.push({
+        country:cols[iCountry]||'',
+        region:iRegion>=0?cols[iRegion]:'',
+        score:parseFloat(cols[iScore])||0,
+        value:iValue>=0?parseFloat(cols[iValue])||0:0,
+        momentum:iMom>=0?parseFloat(cols[iMom])||0:0,
+        liquidity:iLiq>=0?parseFloat(cols[iLiq])||0:0,
+        analystAlpha:aAlpha,
+        finalSource:aAlpha!==null?'analyst':'model',
+      });
+    }
+    if(parsed.length){CM_DATA=parsed;rCM();hMsg(parsed.length+' countries loaded','ok');}
+  };
+  reader.readAsText(file);
+}
+
+// Sort state for country model table
+let cmSort={col:'score',asc:false};
+function cmSortBy(col){if(cmSort.col===col)cmSort.asc=!cmSort.asc;else{cmSort.col=col;cmSort.asc=col==='country'||col==='region';}rCM();}
+
+function rCM(){
+  const scores=CM_DATA.map(c=>c.score);
+  const n=scores.length;
+  const mean=n>0?scores.reduce((a,b)=>a+b,0)/n:0;
+  const std=n>1?Math.sqrt(scores.reduce((s,v)=>s+(v-mean)**2,0)/n):1;
+
+  let h='<div class="pp" style="max-width:1100px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+  h+='<div><div class="pp-t" style="margin:0">Country Model Inputs</div>';
+  h+='<div class="pp-sub">Model Alpha from Z-scored composite. Analyst Alpha manual override. Final Alpha (PM discretion) feeds the optimizer.</div></div>';
+  h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
+  h+='<button class="btn btn-rs" onclick="addCountry()" style="font-size:9px;padding:4px 8px;color:var(--g);border-color:var(--g)">➕ Add Country</button>';
+  h+='<button class="btn btn-rs" onclick="setAllFinalSource(\'model\')" style="font-size:9px;padding:4px 8px">All → Model</button>';
+  h+='<button class="btn btn-rs" onclick="setAllFinalSource(\'analyst\')" style="font-size:9px;padding:4px 8px">All → Analyst</button>';
+  h+='<button class="btn btn-go" onclick="cmToAlpha();rCM();rPort()" style="font-size:10px;padding:5px 12px">⚡ Apply to Alpha</button>';
+  h+='<button class="btn btn-rs" onclick="document.getElementById(\'cmFileIn\').click()" style="font-size:10px">📄 Import CSV</button>';
+  h+='<input type="file" id="cmFileIn" accept=".csv,.tsv,.txt" style="display:none" onchange="handleCMFile(this.files[0])"/>';
+  h+='</div></div>';
+
+  // Stats bar
+  h+='<div style="display:flex;gap:16px;margin:12px 0;font-size:11px;flex-wrap:wrap">';
+  h+='<div style="color:var(--tm)">Countries: <b style="color:var(--tb)">'+n+'</b></div>';
+  h+='<div style="color:var(--tm)">Mean: <b style="color:var(--tb)">'+mean.toFixed(1)+'</b></div>';
+  h+='<div style="color:var(--tm)">Std: <b style="color:var(--tb)">'+std.toFixed(1)+'</b></div>';
+  h+='<div style="color:var(--tm)">Z cutoffs: <span style="color:var(--g)">α3</span>&gt;1.0 · <span style="color:var(--b)">α2</span>&gt;0.3 · <span style="color:var(--a)">α1</span>&gt;-0.3 · <span style="color:var(--tm)">α0</span></div>';
+  h+='<div style="color:var(--tm)">Using analyst: <b style="color:var(--a)">'+CM_DATA.filter(c=>c.finalSource==='analyst'&&c.analystAlpha!==null).length+'</b>/'+n+'</div>';
+  h+='</div>';
+
+  // Enrich data with z-scores, model alpha, and final alpha for sorting
+  const enriched=CM_DATA.map(c=>{
+    const z=(c.score-mean)/std;
+    const modelAlpha=z>1.0?3:z>0.3?2:z>-0.3?1:0;
+    const finalAlpha=finalAlphaFor(c,mean,std);
+    const mapped=[];
+    ETF.forEach(e=>{const ctys=CTY_MAP[e.tk]||[];if(ctys.includes(c.country))mapped.push(e.tk);});
+    return{...c,z,alpha:modelAlpha,modelAlpha,finalAlpha,mapped};
+  });
+
+  // Sort
+  const sc=cmSort.col,dir=cmSort.asc?1:-1;
+  enriched.sort((a,b)=>{
+    let va,vb;
+    if(sc==='country'){va=a.country;vb=b.country;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='region'){va=a.region;vb=b.region;return va<vb?-dir:va>vb?dir:0;}
+    if(sc==='score'){va=a.score;vb=b.score;}
+    else if(sc==='value'){va=a.value;vb=b.value;}
+    else if(sc==='momentum'){va=a.momentum;vb=b.momentum;}
+    else if(sc==='liquidity'){va=a.liquidity;vb=b.liquidity;}
+    else if(sc==='z'){va=a.z;vb=b.z;}
+    else if(sc==='alpha'){va=a.modelAlpha;vb=b.modelAlpha;}
+    else if(sc==='analyst'){va=a.analystAlpha??-1;vb=b.analystAlpha??-1;}
+    else if(sc==='final'){va=a.finalAlpha;vb=b.finalAlpha;}
+    else{va=a.score;vb=b.score;}
+    return(va-vb)*dir;
+  });
+
+  // Sort arrow helper
+  function sa(col){return cmSort.col===col?(cmSort.asc?' ▲':' ▼'):'';}
+
+  // Country table with sortable headers
+  h+='<table class="at"><thead><tr>';
+  h+='<th class="r" style="width:30px">#</th>';
+  h+='<th class="ac" style="width:28px" title="In portfolio / Watchlist">●</th>';
+  h+='<th class="al srt" onclick="cmSortBy(\'country\')">COUNTRY'+sa('country')+'</th>';
+  h+='<th class="al srt" onclick="cmSortBy(\'region\')">REGION'+sa('region')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'score\')">SCORE'+sa('score')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'value\')">VALUE'+sa('value')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'momentum\')">MOM'+sa('momentum')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'liquidity\')">LIQ'+sa('liquidity')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'z\')">Z'+sa('z')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'alpha\')" style="color:var(--b)">MODEL α'+sa('alpha')+'</th>';
+  h+='<th class="r srt" onclick="cmSortBy(\'analyst\')" style="color:var(--a)">ANALYST α'+sa('analyst')+'</th>';
+  h+='<th class="ac srt" onclick="cmSortBy(\'final\')" style="color:var(--g)">FINAL α'+sa('final')+'</th>';
+  h+='<th class="al">MAPPED ETFs</th>';
+  h+='<th class="ac" style="width:60px">ACTION</th>';
+  h+='</tr></thead><tbody>';
+  enriched.forEach((c,idx)=>{
+    const mC=c.modelAlpha===3?'var(--g)':c.modelAlpha===2?'var(--b)':c.modelAlpha===1?'var(--a)':'var(--tm)';
+    const fC=c.finalAlpha===3?'var(--g)':c.finalAlpha===2?'var(--b)':c.finalAlpha===1?'var(--a)':'var(--tm)';
+    const esc=c.country.replace(/'/g,"\\'");
+    const inPort=countryInPortfolio(c.country);
+    const statusColor=inPort?'var(--g)':'var(--tm)';
+    const statusTitle=inPort?'In portfolio ('+c.mapped.join(', ')+')':'Watchlist (no ETF exposure)';
+    const rowBg=inPort?'':'background:#fafbfc';
+    h+='<tr style="'+rowBg+'">';
+    h+='<td class="r" style="color:var(--tm)">'+(idx+1)+'</td>';
+    h+='<td class="ac" title="'+statusTitle+'"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+statusColor+'"></span></td>';
+    // COUNTRY — editable
+    h+='<td class="al"><input class="gi" style="font-weight:600;background:transparent;border:none;padding:2px 4px;width:100%;color:'+(inPort?'var(--tb)':'var(--td)')+'" value="'+c.country.replace(/"/g,'&quot;')+'" onchange="setCountryField(\''+esc+'\',\'country\',this.value)"/></td>';
+    // REGION — editable
+    h+='<td class="al"><input class="gi" style="background:transparent;border:none;padding:2px 4px;width:60px;color:var(--b)" value="'+(c.region||'').replace(/"/g,'&quot;')+'" placeholder="—" onchange="setCountryField(\''+esc+'\',\'region\',this.value)"/></td>';
+    // SCORE — editable
+    h+='<td class="r"><input class="gi" style="width:48px;text-align:right;font-weight:700;padding:2px 4px" value="'+c.score.toFixed(1)+'" onchange="setCountryField(\''+esc+'\',\'score\',this.value)"/></td>';
+    // VALUE — editable
+    h+='<td class="r"><input class="gi" style="width:44px;text-align:right;padding:2px 4px;color:var(--td)" value="'+c.value.toFixed(1)+'" onchange="setCountryField(\''+esc+'\',\'value\',this.value)"/></td>';
+    // MOM — editable
+    h+='<td class="r"><input class="gi" style="width:44px;text-align:right;padding:2px 4px;color:var(--td)" value="'+c.momentum.toFixed(1)+'" onchange="setCountryField(\''+esc+'\',\'momentum\',this.value)"/></td>';
+    // LIQ — editable
+    h+='<td class="r"><input class="gi" style="width:44px;text-align:right;padding:2px 4px;color:var(--td)" value="'+c.liquidity.toFixed(1)+'" onchange="setCountryField(\''+esc+'\',\'liquidity\',this.value)"/></td>';
+    // Z — computed display
+    h+='<td class="r" style="font-weight:600;color:'+(c.z>0?'var(--g)':'var(--r)')+'">'+c.z.toFixed(2)+'</td>';
+    // MODEL α — display only
+    h+='<td class="r" style="font-weight:700;color:'+mC+';font-size:12px">'+c.modelAlpha+'</td>';
+    // ANALYST α — editable input
+    const aVal=c.analystAlpha!==null?c.analystAlpha:'';
+    h+='<td class="r"><input class="gi" style="width:36px;text-align:center;font-weight:700;padding:2px 4px" value="'+aVal+'" placeholder="—" onchange="setAnalystAlpha(\''+esc+'\',this.value)"/></td>';
+    // FINAL α — dropdown to pick Model or Analyst
+    const disabled=c.analystAlpha===null?' disabled':'';
+    h+='<td class="ac"><select class="gi" style="font-size:10px;padding:2px 4px;font-weight:700;color:'+fC+'" onchange="setFinalSource(\''+esc+'\',this.value)">';
+    h+='<option value="model"'+(c.finalSource==='model'?' selected':'')+'>M: '+c.modelAlpha+'</option>';
+    h+='<option value="analyst"'+(c.finalSource==='analyst'?' selected':'')+(disabled)+'>A: '+(c.analystAlpha!==null?c.analystAlpha:'—')+'</option>';
+    h+='</select></td>';
+    h+='<td class="al" style="font-size:10px;color:var(--td)">'+(c.mapped.length?c.mapped.join(', '):'<span style="color:var(--tm);font-style:italic">watchlist</span>')+'</td>';
+    // Action column: promote (watchlist only) + remove
+    h+='<td class="ac" style="white-space:nowrap">';
+    if(!inPort){
+      h+='<span style="cursor:pointer;color:var(--g);font-size:10px;font-weight:700;padding:2px 6px;border:1px solid var(--g);border-radius:3px;margin-right:2px" onclick="promoteCountry(\''+esc+'\')" title="Add ETF to optimizer universe">+ OPT</span>';
+    }
+    h+='<span style="cursor:pointer;color:var(--tm);font-size:14px;padding:2px 4px" onclick="removeCountry(\''+esc+'\')" title="Remove from country model">×</span>';
+    h+='</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  h+='<div style="margin-top:8px;font-size:10px;color:var(--tm)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g);margin-right:4px"></span>In portfolio · <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tm);margin:0 4px 0 10px"></span>Watchlist (score feeds into Z-calculation but no ETF exposure yet)</div>';
+
+  // ETF Alpha Mapping — shows preview of what Apply would produce, using finalAlphas
+  h+='<div style="margin-top:16px"><div style="font-size:11px;font-weight:700;color:var(--b);margin-bottom:8px">ETF Alpha Preview (from Final α — click Apply to push to Optimizer)</div>';
+  h+='<table class="at"><thead><tr><th class="al">ETF</th><th class="al">MAPPED COUNTRIES (Final α)</th><th class="r">AVG</th><th class="r">PREVIEW α</th><th class="r">CURRENT α</th></tr></thead><tbody>';
+  ETF.forEach((e,i)=>{
+    const countries=CTY_MAP[e.tk]||[];
+    if(!countries.length){
+      h+='<tr><td class="al"><span class="tk">'+e.tk+'</span></td><td class="al" style="color:var(--tm)">No country mapping (set manually)</td><td class="r">—</td><td class="r">—</td><td class="r" style="font-weight:700">'+A[i].alpha+'</td></tr>';
+      return;
+    }
+    let sumA=0,cnt=0;
+    const detail=[];
+    countries.forEach(cname=>{
+      const cd=CM_DATA.find(d=>d.country===cname);
+      if(cd){
+        const fa=finalAlphaFor(cd,mean,std);
+        sumA+=fa;cnt++;
+        detail.push(cname+':'+fa);
+      }
+    });
+    const avgA=cnt>0?sumA/cnt:0;
+    const previewAlpha=Math.max(0,Math.min(3,Math.round(avgA)));
+    const pC=previewAlpha===3?'var(--g)':previewAlpha===2?'var(--b)':previewAlpha===1?'var(--a)':'var(--tm)';
+    const cC=A[i].alpha===3?'var(--g)':A[i].alpha===2?'var(--b)':A[i].alpha===1?'var(--a)':'var(--tm)';
+    h+='<tr><td class="al"><span class="tk">'+e.tk+'</span></td>';
+    h+='<td class="al" style="font-size:10px;color:var(--td)">'+detail.join(', ')+'</td>';
+    h+='<td class="r" style="color:var(--td)">'+avgA.toFixed(2)+'</td>';
+    h+='<td class="r" style="font-weight:700;color:'+pC+'">'+previewAlpha+'</td>';
+    h+='<td class="r" style="font-weight:700;color:'+cC+'">'+A[i].alpha+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // CSV upload zone
+  h+='<div id="cmDrop" style="margin-top:14px;padding:14px;border:2px dashed var(--bd);border-radius:8px;text-align:center;cursor:pointer" onclick="document.getElementById(\'cmFileIn\').click()" ondragover="event.preventDefault();this.style.borderColor=\'var(--b)\'" ondragleave="this.style.borderColor=\'var(--bd)\'" ondrop="event.preventDefault();this.style.borderColor=\'var(--bd)\';handleCMFile(event.dataTransfer.files[0])">';
+  h+='<div style="font-size:11px;font-weight:600;color:var(--td)">Drop country model CSV here or click to upload</div>';
+  h+='<div style="font-size:10px;color:var(--tm);margin-top:3px">Expected columns: Country, Region, Score, Value, Momentum, Liquidity, Analyst (optional, 0-3)</div>';
+  h+='</div>';
+
+  h+='</div>';
+  $('pg-cm').innerHTML=h;
+}
+
+// ═══ ④ OPTIMIZER ═══
+function rPort(){
+  const ca=curAUM(),tg=tgtAUM();let h='<div class="sw"><table class="s"><thead>';
+  h+='<tr class="grp"><th colspan="3"></th><th colspan="2" style="color:var(--td);border-bottom:2px solid var(--bh)">── CURRENT ──</th><th colspan="2" style="color:var(--b);border-bottom:2px solid var(--b)">── OPTIMIZED ──</th><th></th><th></th><th colspan="2" style="color:var(--td);border-bottom:1px solid var(--bd)">── BOUNDS ──</th><th></th></tr>';
+  h+='<tr><th class="al" style="min-width:38px">TICKER</th><th class="al" style="min-width:80px">ASSET</th><th class="ac">RGN</th><th class="sl2">CUR %</th><th>CUR $</th><th class="sl2 hl">OPT %</th><th class="hl">OPT $</th><th class="sl2 ac">LOCK</th><th class="sl2 ac hl">ALPHA</th><th class="sl2">MIN</th><th>MAX</th><th class="sl2 ac">TRADE</th></tr></thead><tbody>';
+  CATS.forEach(cat=>{const c=XC[cat];h+='<tr class="cat"><td colspan="12" style="color:'+c+'">■ '+cat.toUpperCase()+'</td></tr>';
+    ETF.forEach((e,i)=>{if(e.cat!==cat)return;const a=A[i],cur$=a.hold$,fin$=tg>0?a.finW/100*tg:0,cw=ca>0?(cur$/ca*100):0;
+      const cc=a.con==='nosell'?'ct-ns':a.con==='nobuy'?'ct-nb':'ct-n';const ct=a.con==='nosell'?'NO SELL':a.con==='nobuy'?'NO BUY':'—';
+      const aC=a.alpha===3?'var(--g)':a.alpha===2?'var(--b)':a.alpha===1?'var(--a)':'var(--tm)';
+      const aD='●'.repeat(a.alpha)||'○';
+      h+='<tr class="dr" id="r'+i+'"><td class="al"><span class="tk">'+e.tk+'</span></td><td class="al"><span class="an2">'+e.nm+'</span></td><td class="ac"><span class="rg" style="background:'+c+'12;color:'+c+'">'+e.geo+'</span></td>';
+      h+='<td class="sl2" style="color:var(--td)">'+cw.toFixed(1)+'</td><td style="color:var(--td)">'+f$(cur$)+'</td>';
+      h+='<td class="fw sl2"><input id="fw'+i+'" value="'+a.finW.toFixed(1)+'" onchange="A['+i+'].finW=parseFloat(this.value)||0;rFull()"/></td>';
+      h+='<td style="color:var(--tb);font-weight:600">'+f$(fin$)+'</td>';
+      h+='<td class="sl2 ac"><span class="ct '+cc+'" onclick="cyc(this,'+i+')">'+ct+'</span></td>';
+      h+='<td class="sl2 ac" style="cursor:pointer;color:'+aC+';font-weight:700;font-size:12px;letter-spacing:-1px" onclick="A['+i+'].alpha=(A['+i+'].alpha+1)%4;rPort()">'+aD+'</td>';
+      h+='<td class="ed sl2"><input value="'+a.minW+'" onchange="A['+i+'].minW=parseFloat(this.value)||0"/></td>';
+      h+='<td class="ed"><input value="'+a.maxW+'" onchange="A['+i+'].maxW=parseFloat(this.value)||0"/></td>';
+      h+='<td class="sl2 ac">'+tBdg(cur$,fin$,e.px)+'</td></tr>';});});
+  const tF=A.reduce((s,a)=>s+a.finW,0),col=Math.abs(tF-100)<.5?'var(--b)':'var(--r)';
+  h+='<tr class="tot"><td colspan="2" class="al" style="color:var(--b)">TOTAL</td><td></td><td class="sl2" style="color:var(--td)">'+(ca>0?'100.0':'0.0')+'</td><td style="color:var(--td)">'+f$(ca)+'</td><td class="sl2" style="color:'+col+'">'+tF.toFixed(1)+'</td><td style="color:'+col+'">'+f$(tF/100*tg)+'</td><td colspan="5"></td></tr>';
+  h+='</tbody></table></div><div class="sum-strip" id="sumS"></div><div class="slog" id="sLog"></div>';
+  $('pg-opt').innerHTML=h;rStats();
+}
+function rStats(){
+  const ca=curAUM(),tg=tgtAUM(),st=parseInt($('strIn').value),cv=bCov(st);
+  const w=A.map(a=>a.finW/100),wc=ETF.map((e,i)=>ca>0?A[i].hold$/ca:0);
+  let cV=0,oV=0,turn$=0;
+  for(let i=0;i<N;i++){
+    turn$+=Math.abs(w[i]*tg-A[i].hold$);
+    for(let j=0;j<N;j++){cV+=wc[i]*wc[j]*cv[i][j];oV+=w[i]*w[j]*cv[i][j];}
+  }
+  const cVol=Math.sqrt(Math.max(0,cV))*100,oVol=Math.sqrt(Math.max(0,oV))*100;
+
+  // Weighted alpha score (actual input, not fake E[R])
+  let cA=0,oA=0;
+  for(let i=0;i<N;i++){cA+=wc[i]*A[i].alpha;oA+=w[i]*A[i].alpha;}
+
+  // Diversification ratio
+  let cWV=0,oWV=0;
+  for(let i=0;i<N;i++){cWV+=wc[i]*ETF[i].vol;oWV+=w[i]*ETF[i].vol;}
+  const divR=oVol>0.01?oWV/oVol:1;
+
+  $('hCR').textContent=cVol.toFixed(1)+'%';
+  $('hCR').parentElement.querySelector('.ts-l').textContent='Cur Vol';
+  $('hFR').textContent=oVol.toFixed(1)+'%';
+  $('hFR').parentElement.querySelector('.ts-l').textContent='Opt Vol';
+  const dr=$('hDR');
+  const dV=oVol-cVol;
+  dr.textContent=(dV>=0?'+':'')+dV.toFixed(1)+'%';dr.style.color=dV<=0?'var(--g)':'var(--r)';
+  $('hFV').textContent=cA.toFixed(2)+'→'+oA.toFixed(2);
+  $('hFV').parentElement.querySelector('.ts-l').textContent='Wtd Alpha';
+  $('hTE').textContent=divR.toFixed(2)+'x';
+
+  const ss=$('sumS');if(ss)ss.innerHTML=[
+    {l:'PORTFOLIO VOL',v:oVol.toFixed(1)+'%',s:'cur '+cVol.toFixed(1)+'% · from wᵀΣw',c:'var(--a)'},
+    {l:'WTD ALPHA',v:oA.toFixed(2),s:'cur '+cA.toFixed(2)+' · higher = more conviction',c:'var(--g)'},
+    {l:'DIVERSIFICATION',v:divR.toFixed(2)+'x',s:'Σ(wᵢσᵢ)/σₚ',c:'var(--b)'},
+    {l:'TURNOVER',v:'$'+f$(turn$),s:tg>0?((turn$/tg)*100).toFixed(1)+'% AUM':'',c:'var(--tb)'},
+  ].map(s=>'<div class="ss"><div class="ss-l">'+s.l+'</div><div class="ss-v" style="color:'+s.c+'">'+s.v+'</div><div class="ss-s">'+s.s+'</div></div>').join('');
+  $('footR').textContent='α Wt='+(+$('lamIn').value).toFixed(1)+' · T-Cost='+(+$('tcIn').value).toFixed(1)+' · Stress='+$('strIn').value+' · '+A.filter(a=>a.con!=='none').length+' locks · AUM $'+f$(tg);
+}
+function uTop(){const ca=curAUM(),tg=tgtAUM();$('cfCur').textContent='$'+f$(ca);$('cfTgt').textContent='$'+f$(tg);$('cfTgt').style.color=NEW$>=0?'var(--b)':'var(--r)';const d=$('cfDel');if(NEW$===0)d.textContent='no new cash';else{d.textContent=fC(NEW$)+(NEW$>=0?' inflow':' outflow');d.style.color=NEW$>=0?'var(--g)':'var(--r)';}}
+
+// ═══ ④ ANALYTICS — Before vs After ═══
+function rAna(){
+  const ca=curAUM(),tg=tgtAUM();
+  const wC=ETF.map((e,i)=>ca>0?A[i].hold$/ca*100:0);
+  const wO=A.map(a=>a.finW);
+  function grpW(field,ws){const m={};ETF.forEach((e,i)=>{const v=e[field];if(Array.isArray(v))v.forEach(t=>{if(!m[t])m[t]=0;m[t]+=ws[i];});else{const k=v||'?';if(!m[k])m[k]=0;m[k]+=ws[i];}});return m;}
+
+  // Risk numbers from covariance
+  const st=parseInt($('strIn').value),cv=bCov(st);
+  const wCd=wC.map(v=>v/100),wOd=wO.map(v=>v/100);
+  let cV2=0,oV2=0;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){cV2+=wCd[i]*wCd[j]*cv[i][j];oV2+=wOd[i]*wOd[j]*cv[i][j];}
+  const cVol=Math.sqrt(Math.max(0,cV2))*100, oVol=Math.sqrt(Math.max(0,oV2))*100;
+  let cA=0,oA=0;for(let i=0;i<N;i++){cA+=wCd[i]*A[i].alpha;oA+=wOd[i]*A[i].alpha;}
+  let cWV=0,oWV=0;for(let i=0;i<N;i++){cWV+=wCd[i]*ETF[i].vol;oWV+=wOd[i]*ETF[i].vol;}
+  const cDiv=cVol>0.01?cWV/cVol:1, oDiv=oVol>0.01?oWV/oVol:1;
+
+  // Risk contribution
+  function riskContrib(wd,vol){
+    const rc=new Float64Array(N);if(vol<0.001)return rc;
+    for(let i=0;i<N;i++){let sw=0;for(let j=0;j<N;j++)sw+=cv[i][j]*wd[j];rc[i]=wd[i]*sw*100*100/(vol);}
+    return rc;
+  }
+  const rcC=riskContrib(wCd,cVol),rcO=riskContrib(wOd,oVol);
+  function grpRC(field,rc){
+    const m={};ETF.forEach((e,i)=>{const v=e[field];if(Array.isArray(v))v.forEach(t=>{if(!m[t])m[t]=0;m[t]+=rc[i];});else{const k=v||'?';if(!m[k])m[k]=0;m[k]+=rc[i];}});return m;
+  }
+
+  // Helper: delta color
+  function dc(d,inv){const pos=inv?d<=0:d>=0;return Math.abs(d)<0.3?'var(--tm)':pos?'var(--g)':'var(--r)';}
+  function fd(d){return(d>=0?'+':'')+d.toFixed(1);}
+
+  let h='<div class="pp"><div class="pp-t">Portfolio Analytics</div>';
+
+  // ── Summary metrics table ──
+  h+='<table class="at"><thead><tr><th class="al">Metric</th><th class="r">Current</th><th class="r">Optimized</th><th class="r">Δ</th></tr></thead><tbody>';
+  [{l:'Wtd Alpha',c:cA.toFixed(2),o:oA.toFixed(2),d:(oA-cA>=0?'+':'')+(oA-cA).toFixed(2),col:dc(oA-cA,false)},
+   {l:'Portfolio Vol',c:cVol.toFixed(1)+'%',o:oVol.toFixed(1)+'%',d:fd(oVol-cVol)+'%',col:dc(oVol-cVol,true)},
+   {l:'Alpha/Vol',c:cVol>0.01?(cA/cVol*100).toFixed(2):'0',o:oVol>0.01?(oA/oVol*100).toFixed(2):'0',d:'',col:'var(--td)'},
+   {l:'Diversification',c:cDiv.toFixed(2)+'x',o:oDiv.toFixed(2)+'x',d:(oDiv-cDiv>=0?'+':'')+(oDiv-cDiv).toFixed(2),col:dc(oDiv-cDiv,false)},
+   {l:'Positions',c:wC.filter(v=>v>0.1).length+'',o:wO.filter(v=>v>0.1).length+'',d:'',col:'var(--td)'},
+  ].forEach(m=>{
+    h+='<tr><td class="al" style="font-weight:600">'+m.l+'</td><td class="r">'+m.c+'</td><td class="r" style="font-weight:700;color:var(--b)">'+m.o+'</td><td class="r" style="font-weight:600;color:'+m.col+'">'+m.d+'</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  // ── Exposure tables: 2×2 grid ──
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">';
+  const dims=[
+    {field:'cat',label:'Asset Class',color:'#2563eb'},
+    {field:'geo',label:'Geography',color:'#7c3aed'},
+    {field:'theme',label:'Theme',color:'#0d9668'},
+    {field:'risk',label:'Risk Class',color:'#b45309'},
+  ];
+  dims.forEach(d=>{
+    const gC=grpW(d.field,wC),gO=grpW(d.field,wO);
+    const gcC=grpRC(d.field,rcC),gcO=grpRC(d.field,rcO);
+    const keys=[...new Set([...Object.keys(gC),...Object.keys(gO)])].sort();
+    h+='<div style="background:var(--pn);border:1px solid var(--bd);border-radius:6px;padding:12px">';
+    h+='<div style="font-size:11px;font-weight:700;color:'+d.color+';margin-bottom:8px">'+d.label+'</div>';
+    h+='<table class="at"><thead><tr><th class="al">Group</th><th class="r">Cur %</th><th class="r">Opt %</th><th class="r">Δ</th><th class="r" style="color:var(--a)">Risk %</th></tr></thead><tbody>';
+    keys.forEach(k=>{
+      const vc=gC[k]||0,vo=gO[k]||0,delta=vo-vc;
+      const rk=gcO[k]||0; // risk contribution
+      const dCol=dc(delta,false);
+      h+='<tr><td class="al" style="font-weight:600;color:'+d.color+'">'+k+'</td>';
+      h+='<td class="r" style="color:var(--td)">'+vc.toFixed(1)+'</td>';
+      h+='<td class="r" style="font-weight:700">'+vo.toFixed(1)+'</td>';
+      h+='<td class="r" style="font-weight:600;color:'+dCol+'">'+fd(delta)+'</td>';
+      h+='<td class="r" style="color:var(--a)">'+rk.toFixed(1)+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  h+='</div>';
+
+  // ── Top risk contributors table ──
+  h+='<div style="margin-top:16px;background:var(--pn);border:1px solid var(--bd);border-radius:6px;padding:12px">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--r);margin-bottom:8px">Top Risk Contributors</div>';
+  h+='<table class="at"><thead><tr><th class="al">ETF</th><th class="r">Wt %</th><th class="r">Risk %</th><th class="r">% of σ</th><th class="r">α</th></tr></thead><tbody>';
+  const rcArr=[];for(let i=0;i<N;i++)if(wO[i]>0.05)rcArr.push({i,rc:rcO[i]});
+  rcArr.sort((a,b)=>b.rc-a.rc);
+  rcArr.slice(0,10).forEach(({i,rc})=>{
+    const pct=oVol>0?rc/oVol*100:0;
+    h+='<tr><td class="al"><span class="tk">'+ETF[i].tk+'</span> <span style="color:var(--tm);font-size:10px">'+ETF[i].nm+'</span></td>';
+    h+='<td class="r">'+wO[i].toFixed(1)+'</td>';
+    h+='<td class="r" style="color:var(--r)">'+rc.toFixed(1)+'</td>';
+    h+='<td class="r" style="color:var(--a)">'+pct.toFixed(0)+'%</td>';
+    h+='<td class="r" style="color:'+(A[i].alpha>=2?'var(--g)':'var(--tm)')+'">'+A[i].alpha+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  h+='</div>';
+  $('pg-ana').innerHTML=h;
+}
+
+// ═══ ⑤ PORT CHANGES ═══
+function rChg(){
+  const ca=curAUM(),tg=tgtAUM();
+  const wC=ETF.map((e,i)=>ca>0?A[i].hold$/ca*100:0);
+  const wO=A.map(a=>a.finW);
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const st=parseInt($('strIn').value),cv=bCov(st);
+  const wCd=wC.map(v=>v/100),wOd=wO.map(v=>v/100);
+  let cV2=0,oV2=0;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){cV2+=wCd[i]*wCd[j]*cv[i][j];oV2+=wOd[i]*wOd[j]*cv[i][j];}
+  const cVol=Math.sqrt(Math.max(0,cV2))*100,oVol=Math.sqrt(Math.max(0,oV2))*100;
+  let turn$=0;for(let i=0;i<N;i++)turn$+=Math.abs(wO[i]/100*tg-A[i].hold$);
+
+  function grpW(field,ws){const m={};ETF.forEach((e,i)=>{const v=e[field];if(Array.isArray(v))v.forEach(t=>{if(!m[t])m[t]=0;m[t]+=ws[i];});else{const k=v||'?';if(!m[k])m[k]=0;m[k]+=ws[i];}});return m;}
+
+  let h='<div class="pp" style="max-width:860px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+  h+='<div class="pp-t" style="margin:0">Portfolio Rebalance Memo</div>';
+  h+='<button class="btn btn-go" onclick="copyChg()" style="font-size:10px;padding:4px 12px">📋 Copy to Clipboard</button></div>';
+  h+='<div class="pp-sub">'+today+' · AUM $'+f$(tg)+' · Turnover $'+f$(turn$)+' ('+(tg>0?(turn$/tg*100).toFixed(1):0)+'%)</div>';
+  h+='<div id="chgContent" class="nt">';
+
+  // ── Summary ──
+  h+='<h3>Summary</h3>';
+  h+='<p>Portfolio rebalanced from $'+f$(ca)+' current holdings + $'+f$(Math.abs(NEW$))+' '+(NEW$>=0?'new capital':'withdrawal')+' = <b>$'+f$(tg)+' target AUM</b>. ';
+  h+='Portfolio volatility moves from '+cVol.toFixed(1)+'% to <b>'+oVol.toFixed(1)+'%</b> ('+(oVol-cVol>=0?'+':'')+(oVol-cVol).toFixed(1)+'%). ';
+  h+='Optimizer settings: α Weight='+(+$('lamIn').value).toFixed(1)+', T-Cost='+(+$('tcIn').value).toFixed(1)+', Corr Stress='+$('strIn').value+' ('+$('strB').textContent+').</p>';
+
+  // ── Trade List ──
+  h+='<h3>Trade List</h3>';
+  const trades=[];
+  ETF.forEach((e,i)=>{
+    const cur$=A[i].hold$,fin$=wO[i]/100*tg,d=fin$-cur$;
+    if(Math.abs(d)>500)trades.push({tk:e.tk,nm:e.nm,cur:cur$,fin:fin$,d,curW:wC[i],finW:wO[i],alpha:A[i].alpha,con:A[i].con});
+  });
+  trades.sort((a,b)=>b.d-a.d);
+  const buys=trades.filter(t=>t.d>0),sells=trades.filter(t=>t.d<0);
+
+  if(buys.length){
+    h+='<table class="at"><thead><tr><th class="al">BUY</th><th class="r">Cur %</th><th class="r">Opt %</th><th class="r">Δ %</th><th class="r">Trade $</th><th class="r">Alpha</th><th class="al">Reason</th></tr></thead><tbody>';
+    buys.forEach(t=>{
+      const reason=explainTrade(t,true);
+      h+='<tr><td class="al"><span class="tk">'+t.tk+'</span> '+t.nm+'</td>';
+      h+='<td class="r">'+t.curW.toFixed(1)+'</td><td class="r" style="font-weight:700;color:var(--g)">'+t.finW.toFixed(1)+'</td>';
+      h+='<td class="r" style="color:var(--g)">+'+(t.finW-t.curW).toFixed(1)+'</td>';
+      h+='<td class="r" style="font-weight:600;color:var(--g)">+$'+f$(t.d)+'</td>';
+      h+='<td class="r">'+t.alpha+'</td><td class="al" style="font-size:10px;color:var(--td);white-space:normal">'+reason+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  if(sells.length){
+    h+='<table class="at" style="margin-top:12px"><thead><tr><th class="al">SELL</th><th class="r">Cur %</th><th class="r">Opt %</th><th class="r">Δ %</th><th class="r">Trade $</th><th class="r">Alpha</th><th class="al">Reason</th></tr></thead><tbody>';
+    sells.forEach(t=>{
+      const reason=explainTrade(t,false);
+      h+='<tr><td class="al"><span class="tk">'+t.tk+'</span> '+t.nm+'</td>';
+      h+='<td class="r">'+t.curW.toFixed(1)+'</td><td class="r" style="font-weight:700;color:var(--r)">'+t.finW.toFixed(1)+'</td>';
+      h+='<td class="r" style="color:var(--r)">'+(t.finW-t.curW).toFixed(1)+'</td>';
+      h+='<td class="r" style="font-weight:600;color:var(--r)">-$'+f$(Math.abs(t.d))+'</td>';
+      h+='<td class="r">'+t.alpha+'</td><td class="al" style="font-size:10px;color:var(--td);white-space:normal">'+reason+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  if(!buys.length&&!sells.length)h+='<p style="color:var(--tm)">No trades. Portfolio is already at optimal weights.</p>';
+
+  // ── Locks ──
+  const locks=ETF.map((e,i)=>({e,a:A[i]})).filter(x=>x.a.con!=='none');
+  if(locks.length){
+    h+='<h3>Active Locks</h3>';
+    h+='<table class="at"><thead><tr><th class="al">ETF</th><th class="al">Lock</th><th class="al">Effect on Optimization</th></tr></thead><tbody>';
+    locks.forEach(({e,a})=>{
+      const ns=a.con==='nosell';
+      h+='<tr><td class="al"><span class="tk">'+e.tk+'</span> '+e.nm+'</td>';
+      h+='<td class="al"><span class="ct '+(ns?'ct-ns':'ct-nb')+'" style="cursor:default">'+(ns?'NO SELL':'NO BUY')+'</span></td>';
+      h+='<td class="al" style="font-size:10px;color:var(--td)">'+(ns?'Floor at current weight '+wC[ETF.indexOf(e)].toFixed(1)+'%. Optimizer cannot reduce this position.':'Cap at current weight '+wC[ETF.indexOf(e)].toFixed(1)+'%. Optimizer cannot add to this position.')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+
+  // ── Binding Constraints ──
+  h+='<h3>Binding Constraints</h3>';
+  h+='<p style="font-size:11px;color:var(--tm)">Groups where the optimizer is at or near the limit — these are shaping the allocation.</p>';
+  let bindCount=0;
+  h+='<table class="at"><thead><tr><th class="al">Constraint</th><th class="r">Limit</th><th class="r">Actual</th><th class="r">Slack</th><th class="al">Status</th></tr></thead><tbody>';
+  for(const L of CONS){
+    const gW=grpW(L.field,wO);
+    for(const[gn,gs]of Object.entries(L.groups)){
+      const act=gW[gn]||0;
+      if(gs.max!==undefined){
+        const slack=gs.max-act;
+        if(slack<2){
+          bindCount++;
+          const binding=slack<0.5;
+          h+='<tr><td class="al" style="color:'+L.color+';font-weight:600">'+L.label+': '+gn+'</td>';
+          h+='<td class="r">≤ '+gs.max+'%</td><td class="r" style="font-weight:700;color:'+(binding?'var(--a)':'var(--td)')+'">'+act.toFixed(1)+'%</td>';
+          h+='<td class="r">'+slack.toFixed(1)+'%</td>';
+          h+='<td class="al" style="font-size:10px">'+(binding?'<span style="color:var(--a);font-weight:600">BINDING</span> — optimizer wants more but limit prevents it':'<span style="color:var(--tm)">Near limit</span>')+'</td></tr>';
+        }
+      }
+      if(gs.min!==undefined){
+        const slack=act-gs.min;
+        if(slack<2){
+          bindCount++;
+          const binding=slack<0.5;
+          h+='<tr><td class="al" style="color:'+L.color+';font-weight:600">'+L.label+': '+gn+'</td>';
+          h+='<td class="r">≥ '+gs.min+'%</td><td class="r" style="font-weight:700;color:'+(binding?'var(--a)':'var(--td)')+'">'+act.toFixed(1)+'%</td>';
+          h+='<td class="r">'+slack.toFixed(1)+'%</td>';
+          h+='<td class="al" style="font-size:10px">'+(binding?'<span style="color:var(--a);font-weight:600">BINDING</span> — optimizer would reduce but floor prevents it':'<span style="color:var(--tm)">Near floor</span>')+'</td></tr>';
+        }
+      }
+    }
+  }
+  if(!bindCount)h+='<tr><td colspan="5" style="color:var(--tm);text-align:center;padding:10px">No binding constraints — optimizer has full flexibility.</td></tr>';
+  h+='</tbody></table>';
+
+  // ── Exposure Shifts ──
+  h+='<h3>Exposure Shifts</h3>';
+  const dims=[{field:'cat',label:'Asset Class'},{field:'geo',label:'Geography'},{field:'risk',label:'Risk Class'}];
+  dims.forEach(d=>{
+    const gC=grpW(d.field,wC),gO=grpW(d.field,wO);
+    const keys=[...new Set([...Object.keys(gC),...Object.keys(gO)])].sort();
+    const changes=keys.map(k=>({k,c:gC[k]||0,o:gO[k]||0,d:(gO[k]||0)-(gC[k]||0)})).filter(x=>Math.abs(x.d)>0.3);
+    if(changes.length){
+      h+='<p style="font-weight:600;margin-top:10px">'+d.label+':</p><ul style="margin:4px 0 8px 16px;font-size:11px;color:var(--td)">';
+      changes.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+      changes.forEach(c=>{
+        h+='<li>'+c.k+': '+c.c.toFixed(1)+'% → '+c.o.toFixed(1)+'% (<span style="color:'+(c.d>0?'var(--g)':'var(--r)')+';font-weight:600">'+(c.d>0?'+':'')+c.d.toFixed(1)+'%</span>)</li>';
+      });
+      h+='</ul>';
+    }
+  });
+
+  // ── Alpha Score Distribution ──
+  h+='<h3>Alpha Score Allocation</h3>';
+  h+='<p style="font-size:11px;color:var(--tm)">How portfolio weight is distributed across conviction levels.</p>';
+  h+='<table class="at"><thead><tr><th class="al">Alpha</th><th class="r">ETFs</th><th class="r">Current %</th><th class="r">Optimized %</th><th class="r">Δ</th></tr></thead><tbody>';
+  [3,2,1,0].forEach(sc=>{
+    const ix=ETF.map((_,i)=>i).filter(i=>A[i].alpha===sc);
+    const cW=ix.reduce((s,i)=>s+wC[i],0),oW=ix.reduce((s,i)=>s+wO[i],0);
+    const d=oW-cW;
+    h+='<tr><td class="al" style="font-weight:700;color:'+(sc>=2?'var(--g)':sc===1?'var(--a)':'var(--tm)')+'">'+sc+' ('+'●'.repeat(sc)+(sc===0?'○':'')+')</td>';
+    h+='<td class="r">'+ix.length+'</td><td class="r">'+cW.toFixed(1)+'</td>';
+    h+='<td class="r" style="font-weight:700">'+oW.toFixed(1)+'</td>';
+    h+='<td class="r" style="color:'+(d>0.3?'var(--g)':d<-0.3?'var(--r)':'var(--tm)')+'">'+(d>=0?'+':'')+d.toFixed(1)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+
+  h+='</div></div>';
+  $('pg-chg').innerHTML=h;
+}
+
+// Trade explanation engine
+function explainTrade(t,isBuy){
+  const reasons=[];
+  // Alpha score
+  if(isBuy&&t.alpha>=3)reasons.push('Top conviction (α=3)');
+  else if(isBuy&&t.alpha>=2)reasons.push('Strong conviction (α=2)');
+  else if(!isBuy&&t.alpha<=1)reasons.push('Low conviction (α='+t.alpha+')');
+  else if(!isBuy&&t.alpha===0)reasons.push('No conviction (α=0)');
+
+  // Lock
+  if(t.con==='nosell')reasons.push('NO SELL lock active');
+  if(t.con==='nobuy')reasons.push('NO BUY lock active');
+
+  // Correlation/diversification
+  const idx=ETF.findIndex(e=>e.tk===t.tk);
+  if(idx>=0){
+    const e=ETF[idx];
+    if(isBuy&&e.vol<10)reasons.push('Low standalone vol ('+e.vol.toFixed(0)+'%)');
+    if(!isBuy&&e.vol>25)reasons.push('High standalone vol ('+e.vol.toFixed(0)+'%)');
+
+    // Check correlation with rest of portfolio
+    let avgCorr=0,cnt=0;
+    for(let j=0;j<N;j++){
+      if(j===idx||A[j].finW<1)continue;
+      const c=BC[e.tk+'-'+ETF[j].tk]??BC[ETF[j].tk+'-'+e.tk]??0;
+      avgCorr+=Math.abs(c);cnt++;
+    }
+    if(cnt>0)avgCorr/=cnt;
+    if(isBuy&&avgCorr<0.3)reasons.push('Low correlation with portfolio (diversifier)');
+    if(!isBuy&&avgCorr>0.6)reasons.push('High correlation with other holdings');
+  }
+
+  // Constraint-driven
+  if(isBuy&&t.curW<0.5&&t.finW>1)reasons.push('New/increased allocation');
+  if(!isBuy&&t.finW<0.5)reasons.push('Exiting position');
+
+  return reasons.join('. ')+(reasons.length?'.':'—');
+}
+
+// Copy memo to clipboard
+function copyChg(){
+  const el=$('chgContent');if(!el)return;
+  // Build plain text version
+  const sel=window.getSelection();sel.removeAllRanges();
+  const range=document.createRange();range.selectNodeContents(el);sel.addRange(range);
+  document.execCommand('copy');sel.removeAllRanges();
+  // Flash button
+  const btn=el.parentElement.querySelector('button');
+  if(btn){const orig=btn.textContent;btn.textContent='✓ Copied';setTimeout(()=>{btn.textContent=orig;},2000);}
+}
+
+// ═══ ⑦ TRADE FILE ═══
+// Generates IBKR BasketTrader CSV plus human-readable summary
+function rTrd(){
+  const ca=curAUM(),tg=tgtAUM();
+  const today=new Date().toISOString().slice(0,10);
+  const tstamp=new Date().toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // Build trade list: for each ETF, compare current $ vs target $
+  // Note: SHY is treated as cash-equivalent but IS tradeable — the optimizer
+  // reduces SHY to fund purchases and grows SHY when selling positions.
+  const trades=[];
+  let totalBuy=0,totalSell=0;
+  ETF.forEach((e,i)=>{
+    const cur$=A[i].hold$;
+    const fin$=A[i].finW/100*tg;
+    const d$=fin$-cur$;
+    if(Math.abs(d$)<500)return; // below minimum trade size
+    if(!e.px||e.px<=0)return; // no price
+    const shares=Math.round(d$/e.px);
+    if(shares===0)return;
+    const action=shares>0?'BUY':'SELL';
+    const qty=Math.abs(shares);
+    trades.push({tk:e.tk,nm:e.nm,action,qty,price:e.px,notional:qty*e.px,d$,curW:ca>0?cur$/ca*100:0,finW:A[i].finW});
+    if(shares>0)totalBuy+=qty*e.px;
+    else totalSell+=qty*e.px;
+  });
+
+  // Sort: SELLs first (generate cash), then BUYs (deploy cash)
+  trades.sort((a,b)=>{
+    if(a.action!==b.action)return a.action==='SELL'?-1:1;
+    return b.notional-a.notional;
+  });
+
+  let h='<div class="pp" style="max-width:1000px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+  h+='<div><div class="pp-t" style="margin:0">Trade File</div>';
+  h+='<div class="pp-sub">'+tstamp+' · AUM $'+f$(tg)+' · '+trades.length+' trades · Sells $'+f$(totalSell)+' · Buys $'+f$(totalBuy)+'</div></div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  h+='<button class="btn btn-go" onclick="dlTradeCSV(\'ibkr\')" style="font-size:10px;padding:5px 12px">⬇ IBKR Basket</button>';
+  h+='<button class="btn btn-rs" onclick="dlTradeCSV(\'simple\')" style="font-size:10px">⬇ Simple CSV</button>';
+  h+='<button class="btn btn-rs" onclick="copyTradeText()" style="font-size:10px">📋 Copy Text</button>';
+  h+='</div></div>';
+
+  if(!trades.length){
+    h+='<div style="margin-top:20px;padding:30px;text-align:center;color:var(--tm);border:1px dashed var(--bd);border-radius:8px">No trades generated. Run the optimizer first (Tab ④).</div>';
+    h+='</div>';
+    $('pg-trd').innerHTML=h;
+    return;
+  }
+
+  // Summary cards
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0">';
+  h+='<div style="background:var(--rB);padding:10px;border-radius:6px;border-left:3px solid var(--r)"><div style="font-size:9px;color:var(--tm);font-weight:600">SELLS</div><div style="font-size:18px;font-weight:700;color:var(--r)">$'+f$(totalSell)+'</div><div style="font-size:10px;color:var(--td)">'+trades.filter(t=>t.action==='SELL').length+' orders</div></div>';
+  h+='<div style="background:var(--gB);padding:10px;border-radius:6px;border-left:3px solid var(--g)"><div style="font-size:9px;color:var(--tm);font-weight:600">BUYS</div><div style="font-size:18px;font-weight:700;color:var(--g)">$'+f$(totalBuy)+'</div><div style="font-size:10px;color:var(--td)">'+trades.filter(t=>t.action==='BUY').length+' orders</div></div>';
+  h+='<div style="background:var(--b2);padding:10px;border-radius:6px;border-left:3px solid var(--b)"><div style="font-size:9px;color:var(--tm);font-weight:600">NET DEPLOYED</div><div style="font-size:18px;font-weight:700;color:var(--b)">'+(totalBuy-totalSell>=0?'+':'-')+'$'+f$(Math.abs(totalBuy-totalSell))+'</div><div style="font-size:10px;color:var(--td)">Buys − Sells</div></div>';
+  h+='<div style="background:var(--inp);padding:10px;border-radius:6px;border-left:3px solid var(--td)"><div style="font-size:9px;color:var(--tm);font-weight:600">TURNOVER</div><div style="font-size:18px;font-weight:700;color:var(--tb)">'+(tg>0?((totalSell+totalBuy)/tg*100).toFixed(1):'0')+'%</div><div style="font-size:10px;color:var(--td)">of AUM</div></div>';
+  h+='</div>';
+
+  // Self-consistency check: Buys − Sells should equal NEW$ (external cash flow)
+  // All internal rebalancing (SHY ↔ equities, equity ↔ equity) nets to zero.
+  const netDeployed=totalBuy-totalSell;
+  const expected=NEW$;
+  const mismatch=netDeployed-expected;
+  if(Math.abs(mismatch)>5000){
+    h+='<div style="background:#fef3c7;border:1px solid #b45309;border-radius:6px;padding:10px;margin-bottom:12px;font-size:11px;color:#92400e">';
+    h+='<b>⚠ Trade imbalance:</b> Net deployed = '+(netDeployed>=0?'+':'-')+'$'+f$(Math.abs(netDeployed))+' (buys − sells). ';
+    h+='Expected '+(expected>=0?'+':'-')+'$'+f$(Math.abs(expected))+' (external cash flow $'+f$(NEW$)+'). ';
+    h+='Difference '+(mismatch>=0?'+':'-')+'$'+f$(Math.abs(mismatch))+' is typically integer-share rounding across '+trades.length+' trades.';
+    h+='</div>';
+  }
+
+  // ── Constraint Compliance Checklist ──
+  // Shows all group and per-ETF constraints with pass/fail vs optimized weights
+  h+='<div style="margin-bottom:14px">';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--b);margin-bottom:8px">Constraint Compliance Check</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+
+  // Compute optimized weights by group
+  const optW=ETF.map((e,i)=>A[i].finW);
+
+  // 1. Group constraints (Asset Class, Geography, Risk)
+  for(const L of CONS){
+    if(L.multi)continue; // skip thematic for now
+    let cardH='<div style="background:var(--inp);border-radius:6px;padding:10px;font-size:11px">';
+    cardH+='<div style="font-weight:700;color:'+L.color+';margin-bottom:6px">'+L.label+'</div>';
+    let allPass=true;
+    for(const[gn,gs]of Object.entries(L.groups)){
+      const ix=[];ETF.forEach((e,i)=>{if(hasTag(e,L.field,gn))ix.push(i);});
+      if(!ix.length)continue;
+      let grpW=0;for(const i of ix)grpW+=optW[i];
+      let status='',icon='',color='';
+      if(gs.max!==undefined&&gs.min!==undefined){
+        const pass=grpW<=gs.max+0.5&&grpW>=gs.min-0.5;
+        icon=pass?'✓':'✗';color=pass?'var(--g)':'var(--r)';
+        status=grpW.toFixed(1)+'% ('+gs.min+'–'+gs.max+'%)';
+        if(!pass)allPass=false;
+      }else if(gs.max!==undefined){
+        const pass=grpW<=gs.max+0.5;
+        icon=pass?'✓':'✗';color=pass?'var(--g)':'var(--r)';
+        status=grpW.toFixed(1)+'% ≤ '+gs.max+'%';
+        if(!pass)allPass=false;
+      }else if(gs.min!==undefined){
+        const pass=grpW>=gs.min-0.5;
+        icon=pass?'✓':'✗';color=pass?'var(--g)':'var(--r)';
+        status=grpW.toFixed(1)+'% ≥ '+gs.min+'%';
+        if(!pass)allPass=false;
+      }
+      cardH+='<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid var(--bd)">';
+      cardH+='<span style="color:var(--td)">'+gn+' <span style="color:var(--tm);font-size:10px">('+ix.map(i=>ETF[i].tk).join(', ')+')</span></span>';
+      cardH+='<span style="font-weight:700;color:'+color+'">'+icon+' '+status+'</span>';
+      cardH+='</div>';
+    }
+    cardH+='</div>';
+    h+=cardH;
+  }
+
+  // 2. Per-ETF position bounds
+  let posH='<div style="background:var(--inp);border-radius:6px;padding:10px;font-size:11px">';
+  posH+='<div style="font-weight:700;color:var(--tb);margin-bottom:6px">Position Bounds</div>';
+  let posViol=0;
+  ETF.forEach((e,i)=>{
+    const w=optW[i];
+    const minOk=w>=A[i].minW-0.5;
+    const maxOk=w<=A[i].maxW+0.5;
+    const pass=minOk&&maxOk;
+    if(!pass)posViol++;
+    // Only show rows that are near limits (>50% of max) or in violation
+    if(w>A[i].maxW*0.5||!pass||A[i].minW>0){
+      const icon=pass?'✓':'✗';
+      const color=pass?'var(--g)':'var(--r)';
+      posH+='<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid var(--bd)">';
+      posH+='<span><span class="tk">'+e.tk+'</span></span>';
+      posH+='<span style="font-weight:700;color:'+color+'">'+icon+' '+w.toFixed(1)+'%';
+      if(A[i].minW>0)posH+=' (≥'+A[i].minW+'%)';
+      posH+=' (≤'+A[i].maxW+'%)';
+      posH+='</span></div>';
+    }
+  });
+  if(posViol===0)posH+='<div style="color:var(--g);font-weight:600;margin-top:4px">All '+N+' positions within bounds ✓</div>';
+  else posH+='<div style="color:var(--r);font-weight:600;margin-top:4px">'+posViol+' position(s) out of bounds ✗</div>';
+  posH+='</div>';
+  h+=posH;
+
+  h+='</div></div>';
+
+  // Trade table
+  h+='<table class="at"><thead><tr>';
+  h+='<th class="r" style="width:32px">#</th>';
+  h+='<th class="al">ACTION</th>';
+  h+='<th class="al">SYMBOL</th>';
+  h+='<th class="al">NAME</th>';
+  h+='<th class="r">SHARES</th>';
+  h+='<th class="r">PRICE</th>';
+  h+='<th class="r">NOTIONAL</th>';
+  h+='<th class="r">CUR %</th>';
+  h+='<th class="r">OPT %</th>';
+  h+='<th class="r">Δ %</th>';
+  h+='</tr></thead><tbody>';
+  trades.forEach((t,idx)=>{
+    const aCol=t.action==='BUY'?'var(--g)':'var(--r)';
+    const aBg=t.action==='BUY'?'var(--gB)':'var(--rB)';
+    h+='<tr>';
+    h+='<td class="r" style="color:var(--tm)">'+(idx+1)+'</td>';
+    h+='<td class="al"><span style="display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;color:'+aCol+';background:'+aBg+'">'+t.action+'</span></td>';
+    h+='<td class="al"><span class="tk">'+t.tk+'</span></td>';
+    h+='<td class="al" style="color:var(--td);font-size:10px">'+t.nm+'</td>';
+    h+='<td class="r" style="font-weight:700;font-variant-numeric:tabular-nums">'+t.qty.toLocaleString()+'</td>';
+    h+='<td class="r" style="color:var(--td)">$'+t.price.toFixed(2)+'</td>';
+    h+='<td class="r" style="font-weight:700;color:'+aCol+'">$'+f$(t.notional)+'</td>';
+    h+='<td class="r" style="color:var(--td)">'+t.curW.toFixed(1)+'</td>';
+    h+='<td class="r" style="color:var(--tb);font-weight:600">'+t.finW.toFixed(1)+'</td>';
+    h+='<td class="r" style="color:'+aCol+'">'+(t.finW-t.curW>=0?'+':'')+(t.finW-t.curW).toFixed(1)+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+
+  // IBKR format preview
+  h+='<div style="margin-top:20px"><div style="font-size:11px;font-weight:700;color:var(--b);margin-bottom:8px">IBKR Basket Trader Format (Preview)</div>';
+  h+='<div style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:6px;font-family:ui-monospace,monospace;font-size:10px;overflow-x:auto;white-space:pre;max-height:240px;overflow-y:auto">';
+  h+=buildIBKRCsv(trades).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h+='</div>';
+  h+='<div style="font-size:10px;color:var(--tm);margin-top:6px">Download as .csv and import via <b>Trader Workstation → Trade → Basket Trader → Load File</b>. Default: Market orders, Day TIF, SMART routing, USD. Review before submitting.</div>';
+  h+='</div>';
+
+  // Individual trade instructions
+  h+='<div style="margin-top:16px"><div style="font-size:11px;font-weight:700;color:var(--b);margin-bottom:8px">Manual Trading Instructions</div>';
+  h+='<div style="background:var(--inp);padding:12px;border-radius:6px;font-size:11px;line-height:1.7;color:var(--td)">';
+  h+='<div><b style="color:var(--r)">1. EXECUTE SELLS FIRST</b> — generate cash before deploying</div>';
+  trades.filter(t=>t.action==='SELL').forEach(t=>{
+    h+='<div style="margin-left:12px">• SELL <b style="color:var(--tb)">'+t.qty.toLocaleString()+'</b> shares of <b class="tk">'+t.tk+'</b> (~$'+f$(t.notional)+')</div>';
+  });
+  h+='<div style="margin-top:8px"><b style="color:var(--g)">2. EXECUTE BUYS</b> — deploy cash into target positions</div>';
+  trades.filter(t=>t.action==='BUY').forEach(t=>{
+    h+='<div style="margin-left:12px">• BUY <b style="color:var(--tb)">'+t.qty.toLocaleString()+'</b> shares of <b class="tk">'+t.tk+'</b> (~$'+f$(t.notional)+')</div>';
+  });
+  h+='</div></div>';
+
+  h+='</div>';
+  $('pg-trd').innerHTML=h;
+}
+
+// Build IBKR Basket Trader CSV format
+function buildIBKRCsv(trades){
+  // IBKR Basket Trader headers
+  const hdr='Action,Quantity,Symbol,SecType,Exchange,Currency,TimeInForce,OrderType';
+  const rows=trades.map(t=>{
+    return[t.action,t.qty,t.tk,'STK','SMART','USD','DAY','MKT'].join(',');
+  });
+  return hdr+'\n'+rows.join('\n');
+}
+
+// Build simple CSV (for other platforms or manual review)
+function buildSimpleCsv(trades){
+  const hdr='Action,Symbol,Shares,Price,Notional,Name';
+  const rows=trades.map(t=>{
+    return[t.action,t.tk,t.qty,t.price.toFixed(2),t.notional.toFixed(2),'"'+t.nm+'"'].join(',');
+  });
+  return hdr+'\n'+rows.join('\n');
+}
+
+// Download trade CSV
+function dlTradeCSV(format){
+  const ca=curAUM(),tg=tgtAUM();
+  const trades=[];
+  ETF.forEach((e,i)=>{
+    const cur$=A[i].hold$,fin$=A[i].finW/100*tg,d$=fin$-cur$;
+    if(Math.abs(d$)<500)return;
+    if(!e.px||e.px<=0)return;
+    const shares=Math.round(d$/e.px);
+    if(shares===0)return;
+    trades.push({tk:e.tk,nm:e.nm,action:shares>0?'BUY':'SELL',qty:Math.abs(shares),price:e.px,notional:Math.abs(shares)*e.px});
+  });
+  trades.sort((a,b)=>{if(a.action!==b.action)return a.action==='SELL'?-1:1;return b.notional-a.notional;});
+  const csv=format==='ibkr'?buildIBKRCsv(trades):buildSimpleCsv(trades);
+  const today=new Date().toISOString().slice(0,10);
+  const fname='DL-TAA-trades-'+today+'-'+format+'.csv';
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=fname;a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Copy trade text to clipboard
+function copyTradeText(){
+  const ca=curAUM(),tg=tgtAUM();
+  const trades=[];
+  ETF.forEach((e,i)=>{
+    const cur$=A[i].hold$,fin$=A[i].finW/100*tg,d$=fin$-cur$;
+    if(Math.abs(d$)<500)return;
+    if(!e.px||e.px<=0)return;
+    const shares=Math.round(d$/e.px);
+    if(shares===0)return;
+    trades.push({tk:e.tk,action:shares>0?'BUY':'SELL',qty:Math.abs(shares),price:e.px,notional:Math.abs(shares)*e.px,nm:e.nm});
+  });
+  trades.sort((a,b)=>{if(a.action!==b.action)return a.action==='SELL'?-1:1;return b.notional-a.notional;});
+  let txt='DL Partners TAA — Trade List — '+new Date().toLocaleString()+'\n';
+  txt+='AUM: $'+f$(tg)+' · '+trades.length+' trades\n';
+  txt+='─'.repeat(60)+'\n';
+  txt+='SELLS:\n';
+  trades.filter(t=>t.action==='SELL').forEach(t=>{
+    txt+='  SELL '+t.qty.toLocaleString().padStart(10)+' '+t.tk.padEnd(6)+' @ $'+t.price.toFixed(2)+' = $'+f$(t.notional)+'\n';
+  });
+  txt+='BUYS:\n';
+  trades.filter(t=>t.action==='BUY').forEach(t=>{
+    txt+='  BUY  '+t.qty.toLocaleString().padStart(10)+' '+t.tk.padEnd(6)+' @ $'+t.price.toFixed(2)+' = $'+f$(t.notional)+'\n';
+  });
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btns=document.querySelectorAll('#pg-trd button');
+    btns.forEach(b=>{if(b.textContent.includes('Copy')){const o=b.textContent;b.textContent='✓ Copied';setTimeout(()=>b.textContent=o,2000);}});
+  });
+}
+
+// ═══ ⑧ CONSTRAINTS ═══
+function rCon(){
+  let h='<div class="pp"><div class="pp-t">Constraint Manager</div><div class="pp-sub">Set min and/or max per group. Leave blank for no constraint.</div>';
+  for(const L of CONS){
+    h+='<div class="cl2" style="margin-top:14px"><div class="dot" style="background:'+L.color+'"></div>'+L.label+'</div>';
+    h+='<div class="gt"><table><thead><tr><th>Group</th><th>ETFs</th><th class="c" style="width:70px">Min %</th><th class="c" style="width:70px">Max %</th></tr></thead><tbody>';
+    for(const[gn,gs]of Object.entries(L.groups)){
+      const ix=[];ETF.forEach((e,i)=>{if(hasTag(e,L.field,gn))ix.push(i);});
+      const minV=gs.min!==undefined?gs.min:'';
+      const maxV=gs.max!==undefined?gs.max:'';
+      h+='<tr><td style="font-weight:600;color:'+L.color+'">'+gn+'</td>';
+      h+='<td style="color:var(--td);font-size:11px">'+ix.map(i=>ETF[i].tk).join(', ')+'</td>';
+      h+='<td class="c"><input class="gi" style="width:44px;text-align:center;font-weight:600" value="'+minV+'" placeholder="—" onchange="updCon(\''+L.field+"','"+gn+"','min',this.value)\"/></td>";
+      h+='<td class="c"><input class="gi" style="width:44px;text-align:center;font-weight:600" value="'+maxV+'" placeholder="—" onchange="updCon(\''+L.field+"','"+gn+"','max',this.value)\"/></td>";
+      h+='</tr>';
+    }
+    h+='</tbody></table></div>';
+  }
+  // Per-asset locks
+  h+='<div class="cl2" style="margin-top:20px">Per-Asset Locks</div>';
+  const locked=ETF.map((e,i)=>({e,a:A[i]})).filter(x=>x.a.con!=='none');
+  h+='<table class="con-table"><thead><tr><th>Ticker</th><th>Asset</th><th>Lock</th><th>Effect</th></tr></thead><tbody>';
+  if(!locked.length)h+='<tr><td colspan="4" style="color:var(--tm);text-align:center;padding:14px">No locks active — set in Tab ③</td></tr>';
+  else locked.forEach(({e,a})=>{const ns=a.con==='nosell';
+    h+='<tr><td style="font-weight:700">'+e.tk+'</td><td style="color:var(--td)">'+e.nm+'</td><td><span class="ct '+(ns?'ct-ns':'ct-nb')+'" style="cursor:default">'+(ns?'NO SELL':'NO BUY')+'</span></td><td style="color:var(--td);font-size:11px">'+(ns?'Cannot reduce position':'Cannot increase position')+'</td></tr>';});
+  h+='</tbody></table></div>';
+  $('pg-con').innerHTML=h;
+}
+function updCon(field,gn,type,val){
+  val=val.trim();
+  for(const L of CONS){
+    if(L.field!==field||!L.groups[gn])continue;
+    if(val===''){delete L.groups[gn][type];} // clear = remove constraint
+    else{const v=parseFloat(val);if(!isNaN(v))L.groups[gn][type]=v;}
+    break;
+  }
+  rCon();
+}
+
+function rFull(){uTop();rPort();}
+
+// ═══ ACTIONS ═══
+function runOpt(){
+  const ca=curAUM();if(ca<=0){alert('Enter holdings in Tab ①');return;}
+  syncCls();ETF.forEach((e,i)=>{e.cw=A[i].hold$/ca*100;});
+  const res=solve();
+  res.w.forEach((v,i)=>{A[i].finW=v;setTimeout(()=>{const r=$('r'+i);if(r){r.style.background=res.ok?'#e8f5e9':'#fff8e1';setTimeout(()=>{r.style.background='';},280);}},i*25);});
+  const b=$('solB');b.style.display='inline';b.style.background=res.ok?'var(--gB)':'var(--rB)';b.style.color=res.ok?'var(--g)':'var(--a)';b.textContent=res.ok?'✓ '+res.ms.toFixed(0)+'ms':'⚠ '+res.ms.toFixed(0)+'ms';
+  setTimeout(()=>{b.style.display='none';},8000);
+  setTimeout(()=>{rFull();const lg=$('sLog');if(lg){lg.style.display='block';lg.innerHTML=res.log.map(l=>{if(l.startsWith('WARN'))return'<div class="wa">'+l+'</div>';if(l.startsWith('ERR'))return'<div class="er">'+l+'</div>';if(l.includes('✓'))return'<div class="ok">'+l+'</div>';if(l.startsWith('Phase'))return'<div class="ph">'+l+'</div>';return'<div>'+l+'</div>';}).join('');}},N*25+50);
+}
+function resetAll(){ETF.forEach((e,i)=>{const ca=curAUM();A[i].finW=ca>0?A[i].hold$/ca*100:0;});$('solB').style.display='none';rFull();}
+
+// ═══ AUTO-LOAD: DL Partners TAA1 actual holdings ═══
+(function(){
+  // Load actual current holdings
+  ETF.forEach((e,i)=>{A[i].hold$=SAMP[e.tk]||0;});
+  NEW$=0;$('cfNew').value='0';
+
+  // ── Per-ETF position bounds ──
+  // SPY: max 60% (large-cap core)
+  // EM single-country: max 6% each
+  // DM single-country: max 15% each
+  // Commodities: max 15% each
+  // SHY: max 80% (cash proxy, unconstrained)
+  const BOUNDS={
+    SPY:60, XLI:15, SMH:15,           // US equity
+    EWJ:15, FEZ:15, EWP:15, EWI:15,   // DM equity
+    GREK:6, EPOL:6, EZA:6, ECH:6,     // EM equity
+    EIS:6, EPU:6,                       // EM equity
+    GLD:15, USO:15, COPX:15,           // Commodities
+    SHY:80,                             // Cash proxy
+  };
+  ETF.forEach((e,i)=>{
+    if(BOUNDS[e.tk]!==undefined)A[i].maxW=BOUNDS[e.tk];
+  });
+
+  // Apply country model → alpha scores
+  cmToAlpha();
+  // Manual alphas for non-country-mapped ETFs (commodities, bonds, cash)
+  A[ETF.findIndex(e=>e.tk==='SHY')].alpha=2;   // short bonds — defensive
+  A[ETF.findIndex(e=>e.tk==='GLD')].alpha=3;   // gold — high conviction
+  A[ETF.findIndex(e=>e.tk==='USO')].alpha=2;   // oil
+  A[ETF.findIndex(e=>e.tk==='COPX')].alpha=2;  // copper miners
+  // SHY alpha already set above (cash-equivalent)
+  const ca=curAUM();
+  ETF.forEach((e,i)=>{e.cw=ca>0?A[i].hold$/ca*100:0;A[i].finW=e.cw;});
+  rHold();
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-t="opt"]').classList.add('on');
+  $('pg-opt').classList.add('on');
+  rFull();
+  // Don't auto-run optimizer — let user review current state first
+})();
+</script>
+</body>
+</html>

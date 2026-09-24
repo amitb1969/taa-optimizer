@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-23 01:41",
+  "updated": "2026-09-24 01:36",
   "lookback_days": 17,
   "tickers": [
     "SPY",
@@ -108,7 +108,7 @@
     "EWI-ECH": 0.6423,
     "EWI-EIS": 0.4812,
     "EWI-EPU": 0.6224,
-    "EWI-SHY": 0.3977,
+    "EWI-SHY": 0.3978,
     "EWI-GLD": 0.4069,
     "EWI-USO": -0.3875,
     "EWI-COPX": 0.6165,
@@ -161,71 +161,71 @@
   "stats": {
     "SPY": {
       "vol": 12.7,
-      "px": NaN
+      "px": 767.81
     },
     "XLI": {
       "vol": 16.9,
-      "px": NaN
+      "px": 170.1
     },
     "SMH": {
       "vol": 38.9,
-      "px": NaN
+      "px": 601.41
     },
     "EWJ": {
       "vol": 20.6,
-      "px": NaN
+      "px": 97.05
     },
     "FEZ": {
       "vol": 17.8,
-      "px": NaN
+      "px": 67.96
     },
     "EWP": {
       "vol": 18.6,
-      "px": NaN
+      "px": 60.35
     },
     "EWI": {
       "vol": 18.0,
-      "px": NaN
+      "px": 59.98
     },
     "GREK": {
       "vol": 23.8,
-      "px": NaN
+      "px": 82.99
     },
     "EPOL": {
       "vol": 22.6,
-      "px": NaN
+      "px": 44.58
     },
     "EZA": {
       "vol": 32.5,
-      "px": NaN
+      "px": 66.44
     },
     "ECH": {
       "vol": 25.1,
-      "px": NaN
+      "px": 39.58
     },
     "EIS": {
       "vol": 23.1,
-      "px": NaN
+      "px": 124.85
     },
     "EPU": {
       "vol": 31.7,
-      "px": NaN
+      "px": 91.57
     },
     "SHY": {
       "vol": 1.3,
-      "px": NaN
+      "px": 81.12
     },
     "GLD": {
       "vol": 28.8,
-      "px": NaN
+      "px": 392.88
     },
     "USO": {
       "vol": 47.6,
-      "px": NaN
+      "px": 148.83
     },
     "COPX": {
       "vol": 46.4,
-      "px": NaN
+      "px": 87.03
     }
   },
   "metadata": {
